@@ -1,5 +1,7 @@
 # MarketOps Hub
 
+**Live Demo:** [https://marketops-hub-git-main-kira-bb54.vercel.app/](https://marketops-hub-git-main-kira-bb54.vercel.app/)
+
 ## Overview
 
 MarketOps Hub is a general-purpose marketing operations management platform for Marketing and Operations teams. It brings campaign planning, partner coordination, activity execution, lead tracking, and performance reporting into one consistent workspace.
