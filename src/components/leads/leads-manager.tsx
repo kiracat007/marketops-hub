@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { exportLeadsCsv } from "./csv-export";
 import { LeadFormModal } from "./lead-form-modal";
 import { LeadTable } from "./lead-table";
 import { initialLeads } from "./mock-data";
@@ -18,6 +19,6 @@ export function LeadsManager() {
     <label className="relative"><span className="sr-only">按姓名或公司搜索</span><input value={search} onChange={(e) => setSearch(e.target.value)} className={`${controlClass} w-full pl-10`} placeholder="搜索姓名或公司" /><span aria-hidden="true" className="absolute left-3.5 top-2.5 text-slate-400">⌕</span></label>
     <label><span className="sr-only">按状态筛选</span><select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className={`${controlClass} w-full`}><option value="All">全部状态</option>{leadStatuses.map((item) => <option key={item}>{item}</option>)}</select></label>
     <label><span className="sr-only">按来源筛选</span><select value={sourceFilter} onChange={(e) => setSourceFilter(e.target.value)} className={`${controlClass} w-full`}><option value="All">全部来源</option>{leadSources.map((item) => <option key={item}>{item}</option>)}</select></label>
-    {(search || statusFilter !== "All" || sourceFilter !== "All") && <button type="button" onClick={clearFilters} className="h-11 rounded-xl px-3 text-sm font-medium text-slate-500 hover:bg-slate-100">清除筛选</button>}</div><button type="button" onClick={openCreateForm} className="h-11 shrink-0 rounded-xl bg-teal-600 px-4 text-sm font-semibold text-white shadow-sm hover:bg-teal-700">＋ 新建 Lead</button></section>
+    {(search || statusFilter !== "All" || sourceFilter !== "All") && <button type="button" onClick={clearFilters} className="h-11 rounded-xl px-3 text-sm font-medium text-slate-500 hover:bg-slate-100">清除筛选</button>}</div><div className="flex shrink-0 gap-3"><button type="button" onClick={() => exportLeadsCsv(filteredLeads)} disabled={filteredLeads.length === 0} className="h-11 rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">Export CSV</button><button type="button" onClick={openCreateForm} className="h-11 rounded-xl bg-teal-600 px-4 text-sm font-semibold text-white shadow-sm hover:bg-teal-700">＋ 新建 Lead</button></div></section>
     <div className="mb-3 px-1 text-sm text-slate-500">显示 {filteredLeads.length} / {leads.length} 个 Lead</div><LeadTable leads={filteredLeads} onEdit={openEditForm} onDelete={deleteLead} />{formOpen && <LeadFormModal lead={editingLead} onClose={() => setFormOpen(false)} onSave={saveLead} />}</>;
 }
