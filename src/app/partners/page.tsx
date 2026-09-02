@@ -1,5 +1,14 @@
-import { PlaceholderPage } from "@/components/placeholder-page";
+import { AppShell } from "@/components/app-shell";
+import { PartnersManager } from "@/components/partners/partners-manager";
 
 export default function PartnersPage() {
-  return <PlaceholderPage eyebrow="Partners" title="合作伙伴" description="管理 KOL、Influencer、Agency、Dealer 和 Vendor 等合作伙伴。" />;
+  return (
+    <AppShell
+      eyebrow="Partners"
+      title="合作伙伴"
+      description="集中管理 KOL、Agency、Dealer、Vendor 等外部市场合作伙伴。"
+    >
+      <PartnersManager />
+    </AppShell>
+  );
 }
