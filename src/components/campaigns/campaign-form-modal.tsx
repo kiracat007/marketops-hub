@@ -79,7 +79,7 @@ export function CampaignFormModal({ campaign, onClose, onSave }: CampaignFormMod
               <input name="owner" value={draft.owner} onChange={(e) => update("owner", e.target.value)} className={inputClass} placeholder="负责人姓名" />
               {errors.owner && <span className="mt-1 block text-xs text-rose-600">{errors.owner}</span>}
             </label>
-            <label className={labelClass}>预算（CNY）
+            <label className={labelClass}>预算（USD）
               <input name="budget" type="number" min="0" value={draft.budget} onChange={(e) => update("budget", Number(e.target.value))} className={inputClass} />
               {errors.budget && <span className="mt-1 block text-xs text-rose-600">{errors.budget}</span>}
             </label>

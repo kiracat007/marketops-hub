@@ -1,7 +1,7 @@
 import { LeadStatusBadge } from "./status-badge";
 import type { Lead } from "./types";
 
-const currency = new Intl.NumberFormat("zh-CN", { style: "currency", currency: "CNY", maximumFractionDigits: 0 });
+const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 const dateFormatter = new Intl.DateTimeFormat("zh-CN", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" });
 function formatDate(value: string) { return dateFormatter.format(new Date(`${value}T00:00:00Z`)); }
 

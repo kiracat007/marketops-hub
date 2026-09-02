@@ -1,5 +1,10 @@
-import { PlaceholderPage } from "@/components/placeholder-page";
+import { AppShell } from "@/components/app-shell";
+import { DashboardOverview } from "@/components/dashboard/dashboard-overview";
 
 export default function DashboardPage() {
-  return <PlaceholderPage eyebrow="Dashboard" title="概览" description="查看 MarketOps Hub 中各项市场运营工作的整体情况。" />;
+  return (
+    <AppShell eyebrow="Dashboard" title="概览" description="快速查看市场运营的整体状态、线索结果和近期工作。">
+      <DashboardOverview />
+    </AppShell>
+  );
 }
