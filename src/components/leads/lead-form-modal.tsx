@@ -4,13 +4,13 @@ import { useState, type FormEvent } from "react";
 import { initialActivities } from "@/components/activities/mock-data";
 import { initialCampaigns } from "@/components/campaigns/mock-data";
 import { initialPartners } from "@/components/partners/mock-data";
-import { leadSources, leadStatuses, type Lead, type LeadDraft } from "./types";
+import { leadSources, leadStatuses, type LeadDraft, type LeadRecord } from "./types";
 
 const campaignNames = ["未关联", ...initialCampaigns.map((item) => item.name)];
 const activityNames = ["未关联", ...initialActivities.map((item) => item.name)];
 const partnerNames = ["未关联", ...initialPartners.map((item) => item.name)];
 const emptyLead: LeadDraft = { name: "", company: "", email: "", phone: "", source: "Campaign", campaign: "未关联", activity: "未关联", partner: "未关联", status: "New", potentialValue: 0, owner: "", createdAt: "" };
-type LeadFormModalProps = { lead: Lead | null; onClose: () => void; onSave: (draft: LeadDraft) => void };
+type LeadFormModalProps = { lead: LeadRecord | null; onClose: () => void; onSave: (draft: LeadDraft) => void };
 
 export function LeadFormModal({ lead, onClose, onSave }: LeadFormModalProps) {
   const [draft, setDraft] = useState<LeadDraft>(lead ? { ...lead } : emptyLead);

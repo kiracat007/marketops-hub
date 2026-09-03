@@ -1,4 +1,4 @@
-import type { Lead } from "./types";
+import type { LeadRecord } from "./types";
 
 const headers = [
   "Name",
@@ -20,7 +20,7 @@ function escapeCsvCell(value: string | number) {
   return /[",\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
 }
 
-export function createLeadsCsv(leads: Lead[]) {
+export function createLeadsCsv(leads: LeadRecord[]) {
   const rows = leads.map((lead) => [
     lead.name,
     lead.company,
@@ -39,7 +39,7 @@ export function createLeadsCsv(leads: Lead[]) {
   return [headers, ...rows].map((row) => row.map(escapeCsvCell).join(",")).join("\r\n");
 }
 
-export function exportLeadsCsv(leads: Lead[]) {
+export function exportLeadsCsv(leads: LeadRecord[]) {
   const csv = createLeadsCsv(leads);
   const blob = new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);

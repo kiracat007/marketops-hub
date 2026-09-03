@@ -20,4 +20,5 @@ export type Lead = {
   createdAt: string;
 };
 
+export type LeadRecord = Omit<Lead, "id"> & { id: number | string };
 export type LeadDraft = Omit<Lead, "id">;

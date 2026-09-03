@@ -1,11 +1,11 @@
 import { LeadStatusBadge } from "./status-badge";
-import type { Lead } from "./types";
+import type { LeadRecord } from "./types";
 
 const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 const dateFormatter = new Intl.DateTimeFormat("zh-CN", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" });
 function formatDate(value: string) { return dateFormatter.format(new Date(`${value}T00:00:00Z`)); }
 
-type LeadTableProps = { leads: Lead[]; onEdit: (lead: Lead) => void; onDelete: (lead: Lead) => void };
+type LeadTableProps = { leads: LeadRecord[]; onEdit: (lead: LeadRecord) => void; onDelete: (lead: LeadRecord) => void };
 
 export function LeadTable({ leads, onEdit, onDelete }: LeadTableProps) {
   if (leads.length === 0) return <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center"><p className="font-medium text-slate-900">没有找到 Lead</p><p className="mt-2 text-sm text-slate-500">请尝试调整搜索关键词或筛选条件。</p></div>;
