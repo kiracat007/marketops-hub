@@ -1,14 +1,14 @@
 import type { LeadStatus } from "./types";
 
 const styles: Record<LeadStatus, string> = {
-  New: "bg-sky-50 text-sky-700 ring-sky-600/20",
-  Contacted: "bg-indigo-50 text-indigo-700 ring-indigo-600/20",
-  Qualified: "bg-violet-50 text-violet-700 ring-violet-600/20",
-  Opportunity: "bg-amber-50 text-amber-700 ring-amber-600/20",
-  Won: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
-  Lost: "bg-slate-100 text-slate-600 ring-slate-500/20",
+  New: "border-[#d7d5cf] bg-[#efeee9] text-[#66645f]",
+  Contacted: "border-[#d8cff7] bg-[#f2effd] text-[#665a8f]",
+  Qualified: "border-[#cfc4f7] bg-[#eeeafd] text-[#5b4b91]",
+  Opportunity: "border-[#c8bee9] bg-[#e9e4f8] text-[#594c80]",
+  Won: "border-[#bdcdc3] bg-[#e8efea] text-[#405c49]",
+  Lost: "border-[#ddc9c6] bg-[#f3eae8] text-[#805751]",
 };
 
 export function LeadStatusBadge({ status }: { status: LeadStatus }) {
-  return <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${styles[status]}`}>{status}</span>;
+  return <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-medium ${styles[status]}`}>{status}</span>;
 }

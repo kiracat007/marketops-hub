@@ -35,7 +35,7 @@ export function ActivityLogManager() {
   }, [moduleFilter, search, sortedLogs, typeFilter]);
 
   const hasFilters = search || moduleFilter !== "All" || typeFilter !== "All";
-  const controlClass = "h-11 rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15";
+  const controlClass = "h-10 rounded-[10px] border border-zinc-200 bg-white px-3 text-[13px] text-zinc-700 outline-none transition focus:border-zinc-400 focus:ring-2 focus:ring-zinc-900/5";
 
   function clearFilters() {
     setSearch("");
@@ -45,7 +45,7 @@ export function ActivityLogManager() {
 
   return (
     <>
-      <section className="mb-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <section className="mb-6 rounded-[14px] border border-zinc-200/80 bg-white p-3.5 shadow-sm">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(260px,1fr)_180px_190px_auto]">
           <label className="relative">
             <span className="sr-only">搜索操作描述</span>
@@ -66,7 +66,7 @@ export function ActivityLogManager() {
               {activityLogTypes.map((type) => <option key={type}>{type}</option>)}
             </select>
           </label>
-          {hasFilters && <button type="button" onClick={clearFilters} className="h-11 rounded-xl px-3 text-sm font-medium text-slate-500 hover:bg-slate-100">清除筛选</button>}
+          {hasFilters && <button type="button" onClick={clearFilters} className="h-10 rounded-[10px] px-3 text-[13px] text-zinc-500 transition hover:bg-zinc-100">清除筛选</button>}
         </div>
       </section>
 
@@ -77,7 +77,7 @@ export function ActivityLogManager() {
           <p className="mt-2 text-sm text-slate-500">请尝试调整搜索关键词或筛选条件。</p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-[14px] border border-zinc-200/80 bg-white shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[960px] text-left text-sm">
               <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">

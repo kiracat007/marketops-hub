@@ -26,7 +26,7 @@ export function CampaignTable({ campaigns, onEdit, onDelete }: CampaignTableProp
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-[14px] border border-zinc-200/80 bg-white shadow-sm">
       <div className="overflow-x-auto">
         <table className="w-full min-w-[1050px] text-left text-sm">
           <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
@@ -47,14 +47,14 @@ export function CampaignTable({ campaigns, onEdit, onDelete }: CampaignTableProp
                 <td className="px-5 py-4 font-medium"><Link href={`/campaigns/${campaign.id}`} className="text-slate-950 underline-offset-4 transition hover:text-teal-700 hover:underline">{campaign.name}</Link></td>
                 <td className="px-4 py-4 text-slate-600">{campaign.channel}</td>
                 <td className="px-4 py-4 text-slate-600">{campaign.owner}</td>
-                <td className="px-4 py-4 tabular-nums text-slate-600">{currency.format(campaign.budget)}</td>
-                <td className="px-4 py-4 whitespace-nowrap text-slate-600">{formatDate(campaign.startDate)} — {formatDate(campaign.endDate)}</td>
+                <td className="px-4 py-5 font-semibold tabular-nums tracking-[-0.015em] text-[#272528]">{currency.format(campaign.budget)}</td>
+                <td className="px-4 py-5 whitespace-nowrap font-medium text-[#4e4c48]">{formatDate(campaign.startDate)} — {formatDate(campaign.endDate)}</td>
                 <td className="px-4 py-4"><StatusBadge status={campaign.status} /></td>
                 <td className="px-4 py-4 tabular-nums text-slate-600"><span className="font-semibold text-slate-900">{campaign.actualLeads}</span> / {campaign.targetLeads}</td>
                 <td className="px-5 py-4">
                   <div className="flex justify-end gap-2">
-                    <button type="button" onClick={() => onEdit(campaign)} className="rounded-lg border border-slate-200 px-3 py-1.5 font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50">编辑</button>
-                    <button type="button" onClick={() => onDelete(campaign)} className="rounded-lg px-3 py-1.5 font-medium text-rose-600 transition hover:bg-rose-50">删除</button>
+                    <button type="button" onClick={() => onEdit(campaign)} className="rounded-lg border border-zinc-200 px-2.5 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-zinc-50 hover:text-zinc-900">编辑</button>
+                    <button type="button" onClick={() => onDelete(campaign)} className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-rose-500 transition hover:bg-rose-50/70 hover:text-rose-700">删除</button>
                   </div>
                 </td>
               </tr>

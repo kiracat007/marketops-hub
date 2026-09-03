@@ -18,7 +18,7 @@ export function PartnerTable({ partners, onEdit, onDelete }: PartnerTableProps) 
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-[14px] border border-zinc-200/80 bg-white shadow-sm">
       <div className="overflow-x-auto">
         <table className="w-full min-w-[1060px] text-left text-sm">
           <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
@@ -51,8 +51,8 @@ export function PartnerTable({ partners, onEdit, onDelete }: PartnerTableProps) 
                 <td className="px-4 py-4 text-center font-semibold tabular-nums text-slate-700">{partner.leadsGenerated}</td>
                 <td className="px-5 py-4">
                   <div className="flex justify-end gap-2">
-                    <button type="button" onClick={() => onEdit(partner)} className="rounded-lg border border-slate-200 px-3 py-1.5 font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50">编辑</button>
-                    <button type="button" onClick={() => onDelete(partner)} className="rounded-lg px-3 py-1.5 font-medium text-rose-600 transition hover:bg-rose-50">删除</button>
+                    <button type="button" onClick={() => onEdit(partner)} className="rounded-lg border border-zinc-200 px-2.5 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-zinc-50 hover:text-zinc-900">编辑</button>
+                    <button type="button" onClick={() => onDelete(partner)} className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-rose-500 transition hover:bg-rose-50/70 hover:text-rose-700">删除</button>
                   </div>
                 </td>
               </tr>

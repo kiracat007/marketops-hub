@@ -60,8 +60,8 @@ export function PartnerFormModal({ partner, onClose, onSave }: PartnerFormModalP
     setErrors((current) => ({ ...current, [key]: "" }));
   }
 
-  const inputClass = "mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15";
-  const labelClass = "text-sm font-medium text-slate-700";
+  const inputClass = "mt-2 w-full rounded-[10px] border border-zinc-200 bg-white px-3 py-2.5 text-[13px] text-zinc-900 outline-none transition focus:border-zinc-400 focus:ring-2 focus:ring-zinc-900/5";
+  const labelClass = "text-[13px] font-medium text-zinc-700";
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-slate-950/45 p-4" role="dialog" aria-modal="true" aria-labelledby="partner-form-title" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>

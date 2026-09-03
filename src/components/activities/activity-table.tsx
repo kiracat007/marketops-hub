@@ -16,7 +16,7 @@ export function ActivityTable({ activities, onEdit, onDelete }: ActivityTablePro
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-[14px] border border-zinc-200/80 bg-white shadow-sm">
       <div className="overflow-x-auto">
         <table className="w-full min-w-[1380px] text-left text-sm">
           <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr>
@@ -26,10 +26,10 @@ export function ActivityTable({ activities, onEdit, onDelete }: ActivityTablePro
             {activities.map((activity) => <tr key={activity.id} className="transition hover:bg-slate-50/80">
               <td className="px-5 py-4"><p className="font-medium text-slate-950">{activity.name}</p><p className="mt-1 text-xs text-slate-500">负责人：{activity.owner}</p></td>
               <td className="px-4 py-4 text-slate-600">{activity.type}</td><td className="max-w-52 px-4 py-4 text-slate-600">{activity.campaign}</td><td className="max-w-48 px-4 py-4 text-slate-600">{activity.partner}</td>
-              <td className="px-4 py-4 whitespace-nowrap text-slate-600">{formatDate(activity.startDate)}{activity.endDate !== activity.startDate && <> — {formatDate(activity.endDate)}</>}</td>
+              <td className="px-4 py-5 whitespace-nowrap font-medium text-[#4e4c48]">{formatDate(activity.startDate)}{activity.endDate !== activity.startDate && <> — {formatDate(activity.endDate)}</>}</td>
               <td className="px-4 py-4 text-slate-600">{activity.location}</td><td className="px-4 py-4"><ActivityStatusBadge status={activity.status} /></td>
               <td className="px-4 py-4 text-center tabular-nums text-slate-600"><span className="font-semibold text-slate-900">{activity.actualAttendees}</span> / {activity.expectedAttendees}</td>
-              <td className="px-5 py-4"><div className="flex justify-end gap-2"><button type="button" onClick={() => onEdit(activity)} className="rounded-lg border border-slate-200 px-3 py-1.5 font-medium text-slate-700 hover:bg-slate-50">编辑</button><button type="button" onClick={() => onDelete(activity)} className="rounded-lg px-3 py-1.5 font-medium text-rose-600 hover:bg-rose-50">删除</button></div></td>
+              <td className="px-5 py-4"><div className="flex justify-end gap-2"><button type="button" onClick={() => onEdit(activity)} className="rounded-lg border border-zinc-200 px-2.5 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-zinc-50 hover:text-zinc-900">编辑</button><button type="button" onClick={() => onDelete(activity)} className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-rose-500 transition hover:bg-rose-50/70 hover:text-rose-700">删除</button></div></td>
             </tr>)}
           </tbody>
         </table>
