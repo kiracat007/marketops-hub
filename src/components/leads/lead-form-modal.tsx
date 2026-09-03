@@ -10,11 +10,12 @@ const campaignNames = ["未关联", ...initialCampaigns.map((item) => item.name)
 const activityNames = ["未关联", ...initialActivities.map((item) => item.name)];
 const partnerNames = ["未关联", ...initialPartners.map((item) => item.name)];
 const emptyLead: LeadDraft = { name: "", company: "", email: "", phone: "", source: "Campaign", campaign: "未关联", activity: "未关联", partner: "未关联", status: "New", potentialValue: 0, owner: "", createdAt: "" };
-type LeadFormModalProps = { lead: LeadRecord | null; onClose: () => void; onSave: (draft: LeadDraft) => void };
+type LeadFormModalProps = { lead: LeadRecord | null; saveError: string; onClose: () => void; onSave: (draft: LeadDraft) => Promise<void> };
 
-export function LeadFormModal({ lead, onClose, onSave }: LeadFormModalProps) {
+export function LeadFormModal({ lead, saveError, onClose, onSave }: LeadFormModalProps) {
   const [draft, setDraft] = useState<LeadDraft>(lead ? { ...lead } : emptyLead);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
   function validate() {
     const nextErrors: Record<string, string> = {};
     if (!draft.name.trim()) nextErrors.name = "请输入姓名";
@@ -26,12 +27,12 @@ export function LeadFormModal({ lead, onClose, onSave }: LeadFormModalProps) {
     if (draft.potentialValue < 0) nextErrors.potentialValue = "潜在价值不能小于 0";
     setErrors(nextErrors); return Object.keys(nextErrors).length === 0;
   }
-  function handleSubmit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); if (!validate()) return; onSave({ ...draft, name: draft.name.trim(), company: draft.company.trim(), email: draft.email.trim(), phone: draft.phone.trim(), owner: draft.owner.trim() }); }
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); if (!validate()) return; setSaving(true); try { await onSave({ ...draft, name: draft.name.trim(), company: draft.company.trim(), email: draft.email.trim(), phone: draft.phone.trim(), owner: draft.owner.trim() }); } finally { setSaving(false); } }
   function update<K extends keyof LeadDraft>(key: K, value: LeadDraft[K]) { setDraft((current) => ({ ...current, [key]: value })); setErrors((current) => ({ ...current, [key]: "" })); }
   const inputClass = "mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15"; const labelClass = "text-sm font-medium text-slate-700";
   return <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-slate-950/45 p-4" role="dialog" aria-modal="true" aria-labelledby="lead-form-title" onMouseDown={(event) => event.target === event.currentTarget && onClose()}><div className="my-6 w-full max-w-3xl rounded-2xl bg-white shadow-2xl">
     <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5"><div><h2 id="lead-form-title" className="text-xl font-semibold text-slate-950">{lead ? "编辑 Lead" : "新建 Lead"}</h2><p className="mt-1 text-sm text-slate-500">填写线索信息并选择相关来源。</p></div><button type="button" aria-label="关闭" onClick={onClose} className="rounded-lg px-2 py-1 text-xl text-slate-400 hover:bg-slate-100">×</button></div>
-    <form onSubmit={handleSubmit} noValidate><div className="grid gap-5 px-6 py-5 sm:grid-cols-2">
+    <form onSubmit={handleSubmit} noValidate>{saveError && <div className="mx-6 mt-5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800" role="alert">{saveError}</div>}<div className="grid gap-5 px-6 py-5 sm:grid-cols-2">
       <label className={labelClass}>姓名<input name="name" value={draft.name} onChange={(e) => update("name", e.target.value)} className={inputClass} />{errors.name && <span className="mt-1 block text-xs text-rose-600">{errors.name}</span>}</label>
       <label className={labelClass}>公司<input name="company" value={draft.company} onChange={(e) => update("company", e.target.value)} className={inputClass} />{errors.company && <span className="mt-1 block text-xs text-rose-600">{errors.company}</span>}</label>
       <label className={labelClass}>邮箱<input name="email" type="email" value={draft.email} onChange={(e) => update("email", e.target.value)} className={inputClass} />{errors.email && <span className="mt-1 block text-xs text-rose-600">{errors.email}</span>}</label>
@@ -44,6 +45,6 @@ export function LeadFormModal({ lead, onClose, onSave }: LeadFormModalProps) {
       <label className={labelClass}>负责人<input name="owner" value={draft.owner} onChange={(e) => update("owner", e.target.value)} className={inputClass} />{errors.owner && <span className="mt-1 block text-xs text-rose-600">{errors.owner}</span>}</label>
       <label className={labelClass}>潜在价值（USD）<input name="potentialValue" type="number" min="0" value={draft.potentialValue} onChange={(e) => update("potentialValue", Number(e.target.value))} className={inputClass} />{errors.potentialValue && <span className="mt-1 block text-xs text-rose-600">{errors.potentialValue}</span>}</label>
       <label className={labelClass}>创建日期<input name="createdAt" type="date" value={draft.createdAt} onChange={(e) => update("createdAt", e.target.value)} className={inputClass} />{errors.createdAt && <span className="mt-1 block text-xs text-rose-600">{errors.createdAt}</span>}</label>
-    </div><div className="flex justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4"><button type="button" onClick={onClose} className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">取消</button><button type="submit" className="rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700">{lead ? "保存修改" : "创建 Lead"}</button></div></form>
+    </div><div className="flex justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4"><button type="button" onClick={onClose} disabled={saving} className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60">取消</button><button type="submit" disabled={saving} className="rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-60">{saving ? "正在保存..." : lead ? "保存修改" : "创建 Lead"}</button></div></form>
   </div></div>;
 }

@@ -1,5 +1,7 @@
 import { getSupabaseClient } from "@/lib/supabase/client";
-import type { LeadRecord, LeadSource, LeadStatus } from "./types";
+import type { LeadDraft, LeadRecord, LeadSource, LeadStatus } from "./types";
+
+const leadColumns = "id, name, company, email, phone, source, campaign, activity, partner, status, potential_value, owner, created_at";
 
 type LeadRow = {
   id: string;
@@ -20,12 +22,68 @@ type LeadRow = {
 export async function fetchLeadsFromSupabase(): Promise<LeadRecord[]> {
   const { data, error } = await getSupabaseClient()
     .from("leads")
-    .select("id, name, company, email, phone, source, campaign, activity, partner, status, potential_value, owner, created_at")
+    .select(leadColumns)
     .order("created_at", { ascending: false });
 
   if (error) throw error;
 
-  return ((data ?? []) as LeadRow[]).map((row) => ({
+  return ((data ?? []) as LeadRow[]).map(mapLeadRow);
+}
+
+export async function createLeadInSupabase(draft: LeadDraft): Promise<LeadRecord> {
+  const { data, error } = await getSupabaseClient()
+    .from("leads")
+    .insert(toLeadRow(draft))
+    .select(leadColumns)
+    .single();
+
+  if (error) throw error;
+  return mapLeadRow(data as LeadRow);
+}
+
+export async function updateLeadInSupabase(id: string, draft: LeadDraft): Promise<LeadRecord> {
+  const { data, error } = await getSupabaseClient()
+    .from("leads")
+    .update(toLeadRow(draft))
+    .eq("id", id)
+    .select(leadColumns)
+    .single();
+
+  if (error) throw error;
+  return mapLeadRow(data as LeadRow);
+}
+
+export async function deleteLeadFromSupabase(id: string): Promise<void> {
+  const { data, error } = await getSupabaseClient()
+    .from("leads")
+    .delete()
+    .eq("id", id)
+    .select("id")
+    .single();
+
+  if (error) throw error;
+  if (!data) throw new Error("Supabase 没有返回被删除的 Lead。");
+}
+
+function toLeadRow(draft: LeadDraft) {
+  return {
+    name: draft.name,
+    company: draft.company,
+    email: draft.email || null,
+    phone: draft.phone,
+    source: draft.source,
+    campaign: draft.campaign,
+    activity: draft.activity,
+    partner: draft.partner,
+    status: draft.status,
+    potential_value: draft.potentialValue,
+    owner: draft.owner,
+    created_at: draft.createdAt,
+  };
+}
+
+function mapLeadRow(row: LeadRow): LeadRecord {
+  return {
     id: row.id,
     name: row.name,
     company: row.company ?? "",
@@ -39,5 +97,5 @@ export async function fetchLeadsFromSupabase(): Promise<LeadRecord[]> {
     potentialValue: Number(row.potential_value),
     owner: row.owner ?? "",
     createdAt: row.created_at.slice(0, 10),
-  }));
+  };
 }
