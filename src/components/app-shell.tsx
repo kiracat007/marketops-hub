@@ -3,14 +3,23 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import {
+  CalendarDays,
+  ContactRound,
+  Handshake,
+  History,
+  LayoutDashboard,
+  Megaphone,
+  type LucideIcon,
+} from "lucide-react";
 
-const navigation = [
-  { label: "Dashboard", href: "/dashboard", mark: "D" },
-  { label: "Campaigns", href: "/campaigns", mark: "C" },
-  { label: "Partners", href: "/partners", mark: "P" },
-  { label: "Activities", href: "/activities", mark: "A" },
-  { label: "Leads", href: "/leads", mark: "L" },
-  { label: "Activity Log", href: "/activity-log", mark: "AL" },
+const navigation: Array<{ label: string; href: string; icon: LucideIcon }> = [
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Campaigns", href: "/campaigns", icon: Megaphone },
+  { label: "Partners", href: "/partners", icon: Handshake },
+  { label: "Activities", href: "/activities", icon: CalendarDays },
+  { label: "Leads", href: "/leads", icon: ContactRound },
+  { label: "Activity Log", href: "/activity-log", icon: History },
 ];
 
 type AppShellProps = {
@@ -33,17 +42,28 @@ export function AppShell({ eyebrow, title, description, children }: AppShellProp
             <p className="mt-0.5 text-[11px] text-[#8a8984]">Marketing workspace</p>
           </div>
         </div>
-        <nav className="flex gap-1.5 overflow-x-auto px-3 pb-3 lg:flex-col lg:py-4" aria-label="主要导航">
-          {navigation.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex shrink-0 items-center gap-3 rounded-[10px] px-3 py-2.5 text-[13px] transition ${pathname === item.href || pathname.startsWith(`${item.href}/`) ? "bg-[#eeeafd] font-medium text-[#272331]" : "text-[#6f6f6b] hover:bg-[#f3f1ec] hover:text-[#111111]"}`}
-            >
-              <span className={`grid size-6 place-items-center rounded-md border text-[10px] font-medium ${pathname === item.href || pathname.startsWith(`${item.href}/`) ? "border-[#cfc4f7] bg-[#f8f6ff] text-[#5b4b91]" : "border-[#dddcd7] text-[#918f89]"}`}>{item.mark}</span>
-              {item.label}
-            </Link>
-          ))}
+        <nav className="flex gap-1.5 overflow-x-auto px-3 pb-3 max-[479px]:justify-between lg:flex-col lg:py-4" aria-label="主要导航">
+          {navigation.map((item) => {
+            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+            const Icon = item.icon;
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-label={item.label}
+                title={item.label}
+                className={`group flex shrink-0 items-center gap-3 rounded-[10px] px-3 py-2.5 text-[13px] transition-colors max-[479px]:size-10 max-[479px]:justify-center max-[479px]:p-0 ${isActive ? "bg-[#eeeafd] font-medium text-[#2f2845]" : "text-[#6f6f6b] hover:bg-[#f3f1ec] hover:text-[#111111]"}`}
+              >
+                <Icon
+                  aria-hidden="true"
+                  className={`size-[19px] shrink-0 transition-colors ${isActive ? "text-[#6d5ba6]" : "text-[#8d8b86] group-hover:text-[#44423f]"}`}
+                  strokeWidth={1.7}
+                />
+                <span className="max-[479px]:hidden">{item.label}</span>
+              </Link>
+            );
+          })}
         </nav>
       </aside>
 
