@@ -46,7 +46,29 @@ The Activity Log added sample records for created, updated, status-changed, and 
 
 ### 10. CSV Export
 
-The Leads module gained a browser-native CSV export. It exports the current filtered result, includes the relevant lead fields, handles CSV special characters, and requires no additional package. CSV import was deliberately kept outside the current scope.
+The Leads module gained a browser-native CSV export. It exports the current filtered result, includes the relevant lead fields, handles CSV special characters, and requires no additional package.
+
+### 11. CSV Import and Compatibility Fix
+
+CSV Import was added as a separate iteration. Users can upload a CSV, preview total, valid, and invalid row counts, review validation errors, import valid rows into the current browser session, and download a template.
+
+During manual acceptance testing, the first version could not import a CSV produced by the application's own Export feature. The exported file used user-friendly headers such as `Name`, `Potential Value`, and `Created Date`, while the importer expected internal names such as `name`, `potentialValue`, and `createdAt`. The importer was corrected with header normalization and mapping for both schemas, including case differences, whitespace, UTF-8 BOMs, quoted headers, and common line endings.
+
+### 12. Supabase Read Integration
+
+Supabase was introduced in stages rather than replacing every mock dataset at once. The official JavaScript client and environment-variable configuration were added first. A PostgreSQL `leads` table was designed with UUID primary keys, timestamps, field constraints, seed data, and Row Level Security.
+
+The Leads page was then changed to read from Supabase with loading, error, and mock fallback states. This read-only integration was manually reviewed before database writes were added.
+
+### 13. Supabase CRUD Persistence and RLS Setup
+
+After the read path was accepted, Create, Edit, and Delete were connected to Supabase so changes persisted after refresh and used database-generated UUIDs. CSV Import intentionally remained browser-only.
+
+The RLS configuration was reviewed separately before persistent frontend CRUD was enabled. For the public, login-free portfolio demo, anonymous Select, Insert, Update, and Delete policies were configured for the `leads` table. This is a temporary demonstration policy and is explicitly not suitable for production or sensitive data.
+
+### 14. Campaign Detail and Related Leads Migration
+
+A dynamic Campaign Detail route was added with campaign information, performance progress, related Activities, related Leads, and summary metrics. Campaign and Activity data remained mock-based. The first detail implementation also used mock Leads. A later review identified that this conflicted with the Supabase-backed Leads page, so Related Leads and their summary metrics were changed to load dynamically from Supabase with loading, error, and fallback behavior.
 
 ## Human vs. AI Responsibilities
 
@@ -66,7 +88,7 @@ The Leads module gained a browser-native CSV export. It exports the current filt
 - Scaffold the project implementation.
 - Generate pages and reusable components.
 - Implement local CRUD interactions, search, and filtering.
-- Write basic validation and CSV-generation logic.
+- Write validation, CSV import/export, and Supabase data-access logic.
 - Run TypeScript, ESLint, and production build checks.
 - Assist with debugging and consistency fixes.
 - Explain implementation results in accessible language.
@@ -85,6 +107,18 @@ The first Dashboard version displayed Total Potential Value with the `¥` symbol
 
 Campaigns, Partners, Activities, Leads, Dashboard, Activity Log, and CSV export were implemented as separate stages. Each stage was manually reviewed before the project owner authorized its Git commit. This created a traceable history instead of one large, difficult-to-review change.
 
+### CSV Header Compatibility
+
+The initial CSV Import implementation passed its own validation tests but failed when the project owner uploaded a file created by MarketOps Hub's Export feature. Manual testing exposed the mismatch between internal and display headers. Codex traced the two schemas and added normalization so the system's exported CSV could be imported without manual editing.
+
+### Staged Supabase Adoption
+
+Supabase was not connected to every module at once. The project first established the client configuration and SQL design, then verified Lead reads, and only afterward added persistent Create, Edit, and Delete operations. RLS behavior was checked before enabling anonymous writes for the public demo.
+
+### Campaign Detail Data-Source Correction
+
+The first Campaign Detail page correctly matched related records by Campaign name but used mock Leads. The project owner noticed that `/leads` had already moved to Supabase, creating a data-source inconsistency. Related Leads and Lead-based summary values were then changed to read from Supabase, while Campaigns and Activities deliberately remained mock-based.
+
 ## Lessons Learned
 
 - **AI does not replace requirement definition.** Clear business goals and field definitions are still necessary.
@@ -92,6 +126,8 @@ Campaigns, Partners, Activities, Leads, Dashboard, Activity Log, and CSV export 
 - **Manual acceptance testing is necessary.** A technically valid build can still contain product inconsistencies that only become clear during review.
 - **Scope control is important.** Explicitly postponing databases, authentication, permissions, and complex synchronization helped keep the MVP understandable.
 - **Git commits make development traceable.** Separate approved commits provide a clear record of how the product evolved.
+- **Data-source consistency matters.** Related views should use the same source of truth when one module moves from mock data to persistent storage.
+- **Security choices must match the environment.** Anonymous CRUD can make a portfolio demo easy to evaluate, but it should not be treated as a production permission model.
 
 ## Outcome
 

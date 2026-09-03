@@ -17,13 +17,16 @@ MarketOps Hub provides a single interface for managing the core objects involved
 ## Core Features
 
 - **Dashboard:** Key metrics, lead funnel, lead-source breakdown, campaign performance, upcoming activities, and recent leads.
-- **Campaign Management:** Create, view, search, filter, edit, and delete marketing campaigns.
+- **Campaign Management:** Create, search, filter, edit, and delete marketing campaigns, with a detail view for performance and related records.
 - **Partner Management:** Manage KOLs, influencers, agencies, dealers, vendors, media organizations, and other partners.
 - **Activity Management:** Manage events, exhibitions, field demos, webinars, roadshows, product launches, and offline promotions.
-- **Lead Management:** Track leads, their sources, linked marketing records, status, owner, and potential value.
+- **Lead Management:** Track leads, their sources, linked marketing records, status, owner, and potential value with Supabase-backed persistence.
 - **Activity Log:** Review sample business actions and status changes across the platform.
 - **Search & Filtering:** Narrow records by relevant keywords, categories, channels, sources, and statuses.
 - **CSV Export:** Export all currently visible or filtered leads for use in Excel and other tools.
+- **CSV Import:** Upload lead CSV files, preview data, validate rows, identify errors, import valid records, and download a compatible CSV template.
+- **Supabase-backed Lead Persistence:** Leads are loaded from Supabase, and Create, Edit, and Delete operations persist across page refreshes.
+- **Campaign Detail View:** View campaign information, performance, related activities, related leads, and summary metrics.
 
 ## Core Workflow
 
@@ -49,11 +52,26 @@ A campaign defines the marketing initiative. Partners can support its execution,
 - React 19
 - TypeScript
 - Tailwind CSS 4
+- Supabase
+- PostgreSQL / Supabase Database
+- `@supabase/supabase-js`
 - ESLint
-- Browser-native APIs for CSV export
+- Browser-native APIs for CSV import and export
 - Git for version history
 
-No database, authentication provider, charting library, or external backend service is currently used.
+No authentication provider or external charting library is currently used.
+
+## Architecture and Data Persistence
+
+MarketOps Hub currently uses a hybrid data model:
+
+- **Leads:** Loaded from and persisted to a Supabase `leads` table. Create, edit, and delete operations use database-generated UUIDs and remain available after refresh.
+- **Campaign Detail Related Leads:** Loaded dynamically from Supabase and filtered by matching the Lead `campaign` value to the current Campaign name.
+- **Campaigns, Partners, and Activities:** Continue to use local mock data and browser memory for CRUD interactions.
+- **Dashboard and Activity Log:** Continue to use the project's mock datasets. Activity Log is illustrative rather than a live audit trail.
+- **CSV Import:** Valid rows are added to the current browser session only and are not yet written to Supabase.
+
+Supabase reads and writes include loading and error states. If a Lead query fails, the interface remains usable and can fall back to the local Lead dataset.
 
 ## Project Structure
 
@@ -61,7 +79,7 @@ No database, authentication provider, charting library, or external backend serv
 src/
 ├── app/
 │   ├── dashboard/       # Marketing analytics overview
-│   ├── campaigns/       # Campaign page
+│   ├── campaigns/       # Campaign list and dynamic detail page
 │   ├── partners/        # Partner page
 │   ├── activities/      # Activity page
 │   ├── leads/           # Lead page
@@ -70,7 +88,7 @@ src/
     ├── campaigns/       # Campaign UI, types, and mock data
     ├── partners/        # Partner UI, types, and mock data
     ├── activities/      # Activity UI, types, and mock data
-    ├── leads/           # Lead UI, CSV export, types, and mock data
+    ├── leads/           # Supabase Lead CRUD, CSV tools, types, and fallback data
     ├── dashboard/       # Dashboard calculations and presentation
     ├── activity-log/    # Log UI, types, and mock data
     └── app-shell.tsx    # Shared navigation and page layout
@@ -87,13 +105,22 @@ Requirements: a current Node.js LTS release with npm.
    npm install
    ```
 
-3. Start the development server:
+3. Copy `.env.local.example` to `.env.local` and add the Supabase Project URL and Publishable Key:
+
+   ```text
+   NEXT_PUBLIC_SUPABASE_URL=your-project-url
+   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
+   ```
+
+   `.env.local` is ignored by Git and must not be committed.
+
+4. Start the development server:
 
    ```bash
    npm run dev
    ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in a browser.
+5. Open [http://localhost:3000](http://localhost:3000) in a browser.
 
 Optional project checks:
 
@@ -105,25 +132,33 @@ npm run build
 
 ## Current Limitations
 
-- The application currently uses local mock data.
-- Changes made in the interface are reset after a page refresh.
-- There is no database or persistent backend.
-- Authentication and permissions are not implemented.
-- Cross-module changes are not synchronized in real time.
-- Activity Log contains example records and is not a live audit system.
+- Campaigns, Partners, and Activities still primarily use local mock data.
+- Leads are persisted in Supabase.
+- CSV Import currently updates the current browser state only, and imported rows are not yet persisted to Supabase.
+- Activity Log uses sample records and is not a live audit trail.
+- Authentication and role-based permissions are not implemented.
+- The current public demo uses an anonymous RLS policy for the Leads table, which is suitable only for demonstration purposes and not for production.
+- Dashboard and some cross-module data are not fully synchronized in real time.
+- Campaign Detail uses mock Campaign and Activity data, while Related Leads are loaded dynamically from Supabase.
+
+## Security and Demo Notes
+
+The current Supabase Row Level Security policies allow anonymous visitors to select, insert, update, and delete Lead records so the public portfolio demo can demonstrate persistent CRUD without login. The frontend uses only the public Supabase Publishable Key; no service role or secret key is exposed.
+
+This anonymous-write policy is intentionally demo-only and is not appropriate for production. Any visitor could modify or remove Lead data, submit spam, or automate requests. A production version should require authentication, restrict access by role and record ownership, protect sensitive contact information, and add appropriate abuse controls.
 
 ## Future Improvements
 
-- Database persistence
 - Authentication
 - Role-based permissions
-- CSV import
-- Cross-module real-time data synchronization
+- Persist CSV imports to Supabase
+- Migrate Campaigns, Partners, and Activities to Supabase
+- Real-time cross-module synchronization
+- Live audit logging
 - Third-party integrations
-- A live audit trail generated from real user actions
 
 ## AI-Assisted Development
 
-MarketOps Hub was built through an AI-assisted, iterative workflow using Codex. Codex helped break down requirements, scaffold the project, implement modules and interactions, debug issues, run quality checks, and improve the code. Product direction, MVP scope, functional decisions, manual acceptance testing, and approval of each development stage remained the responsibility of the project owner.
+MarketOps Hub was built through an AI-assisted, iterative workflow using Codex. Codex helped break down requirements, scaffold the project, implement modules and interactions, integrate Supabase, debug CSV compatibility and data-source issues, run quality checks, and improve the code. Product direction, MVP scope, functional decisions, manual acceptance testing, and approval of each development stage remained the responsibility of the project owner.
 
 For a fuller account of the process, see [docs/AI_DEVELOPMENT.md](docs/AI_DEVELOPMENT.md).
