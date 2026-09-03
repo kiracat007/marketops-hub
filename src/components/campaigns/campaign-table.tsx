@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { StatusBadge } from "./status-badge";
 import type { Campaign } from "./types";
 
@@ -43,7 +44,7 @@ export function CampaignTable({ campaigns, onEdit, onDelete }: CampaignTableProp
           <tbody className="divide-y divide-slate-100">
             {campaigns.map((campaign) => (
               <tr key={campaign.id} className="transition hover:bg-slate-50/80">
-                <td className="px-5 py-4 font-medium text-slate-950">{campaign.name}</td>
+                <td className="px-5 py-4 font-medium"><Link href={`/campaigns/${campaign.id}`} className="text-slate-950 underline-offset-4 transition hover:text-teal-700 hover:underline">{campaign.name}</Link></td>
                 <td className="px-4 py-4 text-slate-600">{campaign.channel}</td>
                 <td className="px-4 py-4 text-slate-600">{campaign.owner}</td>
                 <td className="px-4 py-4 tabular-nums text-slate-600">{currency.format(campaign.budget)}</td>
