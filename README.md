@@ -24,7 +24,7 @@ MarketOps Hub provides a single interface for managing the core objects involved
 - **Activity Log:** Review sample business actions and status changes across the platform.
 - **Search & Filtering:** Narrow records by relevant keywords, categories, channels, sources, and statuses.
 - **CSV Export:** Export all currently visible or filtered leads for use in Excel and other tools.
-- **CSV Import:** Upload lead CSV files, preview data, validate rows, identify errors, import valid records, and download a compatible CSV template.
+- **CSV Import:** CSV import with validation and Supabase persistence, including preview, error identification, batch insertion of valid records, duplicate email checks, and a compatible downloadable template.
 - **Supabase-backed Lead Persistence:** Leads are loaded from Supabase, and Create, Edit, and Delete operations persist across page refreshes.
 - **Campaign Detail View:** View campaign information, performance, related activities, related leads, and summary metrics.
 
@@ -69,7 +69,7 @@ MarketOps Hub currently uses a hybrid data model:
 - **Campaign Detail Related Leads:** Loaded dynamically from Supabase and filtered by matching the Lead `campaign` value to the current Campaign name.
 - **Campaigns, Partners, and Activities:** Continue to use local mock data and browser memory for CRUD interactions.
 - **Dashboard and Activity Log:** Continue to use the project's mock datasets. Activity Log is illustrative rather than a live audit trail.
-- **CSV Import:** Valid rows are added to the current browser session only and are not yet written to Supabase.
+- **CSV Import:** Valid rows are batch inserted into Supabase, use database-returned UUIDs and timestamps, and remain available after page refresh. Duplicate email validation runs before import against existing Leads and other rows in the same file. Comparison ignores case and surrounding whitespace, while empty emails are not treated as duplicates.
 
 Supabase reads and writes include loading and error states. If a Lead query fails, the interface remains usable and can fall back to the local Lead dataset.
 
@@ -134,7 +134,8 @@ npm run build
 
 - Campaigns, Partners, and Activities still primarily use local mock data.
 - Leads are persisted in Supabase.
-- CSV Import currently updates the current browser state only, and imported rows are not yet persisted to Supabase.
+- Valid CSV Import rows are batch inserted into Supabase and persist after page refresh.
+- Duplicate email detection currently happens at the application layer; the database does not yet enforce a unique constraint on email, so concurrent imports could theoretically create duplicates.
 - Activity Log uses sample records and is not a live audit trail.
 - Authentication and role-based permissions are not implemented.
 - The current public demo uses an anonymous RLS policy for the Leads table, which is suitable only for demonstration purposes and not for production.
@@ -151,7 +152,7 @@ This anonymous-write policy is intentionally demo-only and is not appropriate fo
 
 - Authentication
 - Role-based permissions
-- Persist CSV imports to Supabase
+- Enforce database-level email uniqueness where appropriate
 - Migrate Campaigns, Partners, and Activities to Supabase
 - Real-time cross-module synchronization
 - Live audit logging

@@ -50,7 +50,7 @@ The Leads module gained a browser-native CSV export. It exports the current filt
 
 ### 11. CSV Import and Compatibility Fix
 
-CSV Import was added as a separate iteration. Users can upload a CSV, preview total, valid, and invalid row counts, review validation errors, import valid rows into the current browser session, and download a template.
+CSV Import was added as a separate iteration. Users can upload a CSV, preview total, valid, and invalid row counts, review validation errors, import valid rows, and download a template. The first version added valid rows only to browser memory; persistence was added in a later accepted iteration.
 
 During manual acceptance testing, the first version could not import a CSV produced by the application's own Export feature. The exported file used user-friendly headers such as `Name`, `Potential Value`, and `Created Date`, while the importer expected internal names such as `name`, `potentialValue`, and `createdAt`. The importer was corrected with header normalization and mapping for both schemas, including case differences, whitespace, UTF-8 BOMs, quoted headers, and common line endings.
 
@@ -62,13 +62,19 @@ The Leads page was then changed to read from Supabase with loading, error, and m
 
 ### 13. Supabase CRUD Persistence and RLS Setup
 
-After the read path was accepted, Create, Edit, and Delete were connected to Supabase so changes persisted after refresh and used database-generated UUIDs. CSV Import intentionally remained browser-only.
+After the read path was accepted, Create, Edit, and Delete were connected to Supabase so changes persisted after refresh and used database-generated UUIDs. CSV Import remained browser-only at this stage and was addressed separately later.
 
 The RLS configuration was reviewed separately before persistent frontend CRUD was enabled. For the public, login-free portfolio demo, anonymous Select, Insert, Update, and Delete policies were configured for the `leads` table. This is a temporary demonstration policy and is explicitly not suitable for production or sensitive data.
 
 ### 14. Campaign Detail and Related Leads Migration
 
 A dynamic Campaign Detail route was added with campaign information, performance progress, related Activities, related Leads, and summary metrics. Campaign and Activity data remained mock-based. The first detail implementation also used mock Leads. A later review identified that this conflicted with the Supabase-backed Leads page, so Related Leads and their summary metrics were changed to load dynamically from Supabase with loading, error, and fallback behavior.
+
+### 15. Persistent CSV Imports
+
+The CSV Import persistence gap was addressed after the rest of the Lead CRUD flow was already backed by Supabase. The implementation reused the existing Lead field mapping, batch inserted valid rows, and updated the page only with database-returned records so imported Leads use the stored UUID and `created_at` values. Importing and failure states were added without changing the established preview, validation, template, or export behavior.
+
+Duplicate email validation was also added before import. It compares non-empty email addresses against the currently loaded Supabase Leads and earlier valid rows in the same file, ignoring case and surrounding whitespace. Because the database does not yet enforce a unique email constraint, this remains application-level protection rather than a complete concurrency guarantee.
 
 ## Human vs. AI Responsibilities
 
@@ -119,6 +125,16 @@ Supabase was not connected to every module at once. The project first establishe
 
 The first Campaign Detail page correctly matched related records by Campaign name but used mock Leads. The project owner noticed that `/leads` had already moved to Supabase, creating a data-source inconsistency. Related Leads and Lead-based summary values were then changed to read from Supabase, while Campaigns and Activities deliberately remained mock-based.
 
+### CSV Import Persistence
+
+**Problem:** CSV Import originally added valid rows only to browser memory, so refreshing the page lost imported data.
+
+**Iteration:** The persistence gap was identified, the existing Supabase Lead mapping logic was reused, and a batch insert was added. Successful imports now use database-returned UUID and `created_at` values. The import dialog gained an importing state and failure handling, while duplicate email validation checks existing Supabase Leads before writing. Existing CSV preview, row validation, template compatibility, and export behavior were preserved.
+
+**Validation:** Two valid Leads were imported and confirmed to remain after a page refresh. A duplicate email was rejected, and invalid email, negative potential value, and invalid status cases continued to be rejected. Search, filtering, and export still worked. The two test records were deleted afterward so the Demo dataset returned to its original state.
+
+**Lesson:** A feature is not complete just because the UI interaction works; persistence and refresh behavior are part of product acceptance.
+
 ## Lessons Learned
 
 - **AI does not replace requirement definition.** Clear business goals and field definitions are still necessary.
@@ -128,6 +144,7 @@ The first Campaign Detail page correctly matched related records by Campaign nam
 - **Git commits make development traceable.** Separate approved commits provide a clear record of how the product evolved.
 - **Data-source consistency matters.** Related views should use the same source of truth when one module moves from mock data to persistent storage.
 - **Security choices must match the environment.** Anonymous CRUD can make a portfolio demo easy to evaluate, but it should not be treated as a production permission model.
+- **Persistence is part of acceptance.** Successful UI feedback is not enough when users reasonably expect imported records to remain after refresh.
 
 ## Outcome
 
