@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f5f4f0;
+  --background: #faf8f5;
   --foreground: #111111;
-  --surface: #fbfaf7;
-  --border: #dddcd7;
+  --surface: #fdfcf9;
+  --border: #e5e1db;
   --muted: #6f6f6b;
   --accent: #b5a4f5;
 }
@@ -70,7 +70,7 @@ main .shadow-2xl {
 }
 
 main .bg-white {
-  background-color: #fbfaf7;
+  background-color: #fdfcf9;
 }
 
 main [class*="border-zinc-200"] {
@@ -78,7 +78,7 @@ main [class*="border-zinc-200"] {
 }
 
 main .border-slate-200 {
-  border-color: #dddcd7;
+  border-color: #e5e1db;
 }
 
 main .border-slate-300 {
@@ -86,7 +86,7 @@ main .border-slate-300 {
 }
 
 main .bg-slate-50 {
-  background-color: #f8f7f3;
+  background-color: #faf8f5;
 }
 
 main .text-slate-950 {
@@ -118,7 +118,7 @@ main button.bg-teal-600:hover {
 }
 
 main table thead {
-  background-color: #f8f7f3;
+  background-color: #faf8f5;
   color: #6f6f6b;
 }
 
@@ -142,9 +142,9 @@ main [role="dialog"] {
 }
 
 main [role="dialog"] > div {
-  border: 1px solid #dddcd7;
+  border: 1px solid #e5e1db;
   border-radius: 16px;
-  background-color: #fbfaf7;
+  background-color: #fdfcf9;
 }
 
 @media (max-width: 1023px) {

@@ -33,8 +33,8 @@ export function AppShell({ eyebrow, title, description, children }: AppShellProp
   const pathname = usePathname();
 
   return (
-    <div className="min-h-screen bg-[#f5f4f0] text-[#111111] lg:grid lg:grid-cols-[228px_1fr]">
-      <aside className="border-b border-[#dddcd7] bg-[#faf9f6] text-[#111111] lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r">
+    <div className="min-h-screen bg-[#faf8f5] text-[#111111] lg:grid lg:grid-cols-[228px_1fr]">
+      <aside className="border-b border-[#e5e1db] bg-[#fdfcf9] text-[#111111] lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r">
         <div className="flex h-16 items-center gap-3 px-5 lg:h-[76px]">
           <div className="grid size-8 place-items-center rounded-[9px] bg-[#111111] text-xs font-semibold text-white">M</div>
           <div>
@@ -53,11 +53,11 @@ export function AppShell({ eyebrow, title, description, children }: AppShellProp
                 href={item.href}
                 aria-label={item.label}
                 title={item.label}
-                className={`group flex shrink-0 items-center gap-3 rounded-[10px] px-3 py-2.5 text-[13px] transition-colors max-[479px]:size-10 max-[479px]:justify-center max-[479px]:p-0 ${isActive ? "bg-[#eeeafd] font-medium text-[#2f2845]" : "text-[#6f6f6b] hover:bg-[#f3f1ec] hover:text-[#111111]"}`}
+                className={`group flex shrink-0 items-center gap-3 rounded-[10px] px-3 py-2.5 text-[13px] transition-colors max-[479px]:size-10 max-[479px]:justify-center max-[479px]:p-0 ${isActive ? "bg-[#f0ebff] font-medium text-[#352c50]" : "text-[#706d68] hover:bg-[#f5f2ed] hover:text-[#111111]"}`}
               >
                 <Icon
                   aria-hidden="true"
-                  className={`size-[19px] shrink-0 transition-colors ${isActive ? "text-[#6d5ba6]" : "text-[#8d8b86] group-hover:text-[#44423f]"}`}
+                  className={`size-[19px] shrink-0 transition-colors ${isActive ? "text-[#7459c5]" : "text-[#918d87] group-hover:text-[#44413d]"}`}
                   strokeWidth={1.7}
                 />
                 <span className="max-[479px]:hidden">{item.label}</span>
@@ -68,7 +68,7 @@ export function AppShell({ eyebrow, title, description, children }: AppShellProp
       </aside>
 
       <main className="min-w-0">
-        <header className="border-b border-[#dddcd7] bg-[#f8f7f3] px-5 py-9 sm:px-8 lg:px-12 lg:py-14">
+        <header className="border-b border-[#e5e1db] bg-[#faf8f5] px-5 py-9 sm:px-8 lg:px-12 lg:py-11">
           <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#77746f]">{eyebrow}</p>
           <h1 className="mt-4 text-[32px] font-bold tracking-[-0.045em] text-[#111111] sm:text-[42px]">{title}</h1>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-[#6f6f6b] sm:text-[15px]">{description}</p>

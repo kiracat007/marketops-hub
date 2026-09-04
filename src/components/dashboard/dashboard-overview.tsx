@@ -39,77 +39,103 @@ export function DashboardOverview() {
   ];
 
   return (
-    <div className="space-y-8">
-      <section className="grid gap-px overflow-hidden rounded-[16px] border border-[#dddcd7] bg-[#dddcd7] sm:grid-cols-2 xl:grid-cols-4" aria-label="关键指标">
-        {kpis.map((item, index) => (
-          <article key={item.label} className={`${item.feature ? "bg-[#e9e3fb]" : "bg-[#faf9f6]"} p-7 sm:p-8 ${index < 2 ? "xl:col-span-2" : ""}`}>
-            <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#6f6f6b]">{item.label}</p>
-            <p className={`mt-8 font-bold leading-none tracking-[-0.055em] text-[#111111] ${item.feature ? "text-[46px] sm:text-[58px]" : "text-[40px] sm:text-[48px]"}`}>{item.value}</p>
-            <p className="mt-4 max-w-sm text-[12px] leading-5 text-[#6f6f6b]">{item.note}</p>
-          </article>
-        ))}
-      </section>
-
-      <section className="grid gap-6 xl:grid-cols-2">
-        <article className="rounded-[14px] border border-[#dddcd7] bg-[#faf9f6] p-7 shadow-sm">
-          <h2 className="text-[15px] font-medium text-zinc-950">Lead Funnel</h2>
-          <p className="mt-1 text-sm text-slate-500">各阶段当前拥有的线索数量</p>
-          <div className="mt-6 space-y-4">
-            {funnel.map((item, index) => (
-              <div key={item.status}>
-                <div className="mb-1.5 flex justify-between text-sm"><span className="font-medium text-slate-700">{item.status}</span><span className="font-semibold tabular-nums text-slate-950">{item.count}</span></div>
-                <div className="h-1.5 overflow-hidden rounded-full bg-[#e7e5df]"><div className="h-full rounded-full bg-[#a997f0]" style={{ width: `${Math.max((item.count / funnelMax) * 100 - index * 3, item.count ? 14 : 0)}%` }} /></div>
-              </div>
-            ))}
+    <div className="space-y-12 lg:space-y-16">
+      <section className="overflow-hidden rounded-[18px] border border-[#e4e0da] bg-[#fdfcf9] shadow-[0_1px_2px_rgba(17,17,17,0.025)]" aria-label="关键指标">
+        <div className="relative grid min-h-[360px] lg:grid-cols-[1.25fr_0.75fr]">
+          <div className="relative z-10 flex flex-col justify-center px-7 py-12 sm:px-10 lg:px-12 lg:py-16">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#77736d]">{kpis[0].label}</p>
+            <p className="mt-6 text-[58px] font-semibold leading-[0.9] tracking-[-0.065em] text-[#111111] sm:text-[76px] lg:text-[88px]">{kpis[0].value}</p>
+            <p className="mt-6 max-w-sm text-sm leading-6 text-[#6b6863]">{kpis[0].note}</p>
           </div>
-        </article>
 
-        <article className="rounded-[14px] border border-[#dddcd7] bg-[#faf9f6] p-7 shadow-sm">
-          <h2 className="text-[15px] font-medium text-zinc-950">Lead Source Breakdown</h2>
-          <p className="mt-1 text-sm text-slate-500">不同市场来源带来的线索数量</p>
-          <div className="mt-6 space-y-3.5">
-            {sources.map((item) => (
-              <div key={item.source} className="grid grid-cols-[90px_1fr_24px] items-center gap-3 text-sm">
-                <span className="text-slate-600">{item.source}</span>
-                <div className="h-1.5 overflow-hidden rounded-full bg-[#e7e5df]"><div className="h-full rounded-full bg-[#77746f]" style={{ width: `${(item.count / sourceMax) * 100}%` }} /></div>
-                <span className="text-right font-semibold tabular-nums text-slate-900">{item.count}</span>
-              </div>
-            ))}
+          <div className="relative flex min-h-[250px] items-end overflow-hidden border-t border-[#e4e0da] bg-[#f1edfd] p-7 sm:p-10 lg:min-h-0 lg:border-l lg:border-t-0">
+            <div aria-hidden="true" className="absolute -right-16 -top-20 size-64 rounded-full border border-[#cfc5ee]/65" />
+            <div aria-hidden="true" className="absolute -right-7 -top-11 size-48 rounded-full border border-[#d9d0f3]" />
+            <div aria-hidden="true" className="absolute right-8 top-10 size-28 rounded-full bg-[#b7a4ef]/55" />
+            <div aria-hidden="true" className="absolute right-5 top-1/2 grid grid-cols-5 gap-3 opacity-45">
+              {Array.from({ length: 20 }).map((_, index) => <span key={index} className="size-1 rounded-full bg-[#8067ce]" />)}
+            </div>
+            <div className="relative z-10 max-w-xs">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#695d89]">{kpis[1].label}</p>
+              <p className="mt-4 text-[46px] font-semibold leading-none tracking-[-0.055em] text-[#332a4d] sm:text-[56px]">{kpis[1].value}</p>
+              <p className="mt-4 text-sm leading-6 text-[#685f7e]">{kpis[1].note}</p>
+            </div>
           </div>
-        </article>
-      </section>
+        </div>
 
-      <section className="rounded-[14px] border border-[#dddcd7] bg-[#faf9f6] p-7 shadow-sm">
-        <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#77746f]">Performance</p>
-        <h2 className="mt-2 text-xl font-semibold tracking-[-0.025em] text-[#111111]">Campaign Performance</h2>
-        <p className="mt-1 text-sm text-slate-500">目标 Leads 与实际 Leads 的完成情况</p>
-        <div className="mt-5 grid gap-5 lg:grid-cols-2">
-          {initialCampaigns.map((campaign) => {
-            const rate = campaign.targetLeads === 0 ? 0 : Math.round((campaign.actualLeads / campaign.targetLeads) * 100);
-            return <div key={campaign.id} className="min-w-0 border-t border-[#e3e1dc] py-5 first:border-t-0 lg:first:border-t">
-              <div className="flex items-start justify-between gap-4"><p className="truncate text-sm font-medium text-slate-900">{campaign.name}</p><span className="shrink-0 text-xl font-bold tracking-[-0.04em] text-[#594b85]">{rate}%</span></div>
-              <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-[#e7e5df]"><div className="h-full rounded-full bg-[#a997f0]" style={{ width: `${Math.min(rate, 100)}%` }} /></div>
-              <p className="mt-2 text-xs text-slate-500">{campaign.actualLeads} 实际 / {campaign.targetLeads} 目标 Leads</p>
-            </div>;
-          })}
+        <div className="grid border-t border-[#e4e0da] sm:grid-cols-2 lg:grid-cols-4">
+          {kpis.slice(2).map((item) => (
+            <article key={item.label} className="border-b border-[#e4e0da] px-7 py-8 last:border-b-0 sm:[&:nth-child(odd)]:border-r lg:border-b-0 lg:border-r lg:last:border-r-0">
+              <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[#77736d]">{item.label}</p>
+              <p className="mt-5 text-[38px] font-semibold leading-none tracking-[-0.05em] text-[#171615] sm:text-[44px]">{item.value}</p>
+              <p className="mt-4 text-[11px] leading-5 text-[#7c7973]">{item.note}</p>
+            </article>
+          ))}
         </div>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-2">
-        <article className="overflow-hidden rounded-[14px] border border-[#dddcd7] bg-[#faf9f6] shadow-sm">
-          <div className="border-b border-slate-200 px-5 py-4"><h2 className="font-semibold text-slate-950">Upcoming Activities</h2><p className="mt-1 text-sm text-slate-500">接下来最早发生的 5 个活动</p></div>
-          <div className="divide-y divide-slate-100">{upcomingActivities.slice(0, 5).map((activity) => <div key={activity.id} className="p-5">
-            <div className="flex flex-wrap items-start justify-between gap-2"><div><p className="font-medium text-slate-900">{activity.name}</p><p className="mt-1 text-sm text-slate-500">{activity.type} · {activity.location}</p></div><ActivityStatusBadge status={activity.status} /></div>
-            <p className="mt-3 text-lg font-bold uppercase tracking-[-0.025em] text-[#594b85]">{formatDate(activity.startDate)}</p>
+      <section className="grid gap-6 xl:grid-cols-[1.45fr_0.85fr]">
+        <article className="rounded-[16px] border border-[#e4e0da] bg-[#fdfcf9] p-6 shadow-[0_1px_2px_rgba(17,17,17,0.025)] sm:p-8">
+          <p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#77736d]">Performance</p>
+          <h2 className="mt-3 text-xl font-semibold tracking-[-0.03em] text-[#151412]">Campaign Performance</h2>
+          <p className="mt-2 text-sm text-[#77736d]">目标 Leads 与实际 Leads 的完成情况</p>
+          <div className="mt-8 grid gap-x-8 lg:grid-cols-2">
+            {initialCampaigns.map((campaign) => {
+              const rate = campaign.targetLeads === 0 ? 0 : Math.round((campaign.actualLeads / campaign.targetLeads) * 100);
+              return <div key={campaign.id} className="min-w-0 border-t border-[#e9e5df] py-5">
+                <div className="flex items-start justify-between gap-5"><p className="truncate text-sm font-medium text-[#292724]">{campaign.name}</p><span className="shrink-0 text-2xl font-semibold tracking-[-0.045em] text-[#6d54ba]">{rate}%</span></div>
+                <div className="mt-4 h-px overflow-hidden bg-[#dedad4]"><div className="h-full bg-[#8b6fe8]" style={{ width: `${Math.min(rate, 100)}%` }} /></div>
+                <p className="mt-3 text-[11px] text-[#85817b]">{campaign.actualLeads} actual · {campaign.targetLeads} target leads</p>
+              </div>;
+            })}
+          </div>
+        </article>
+
+        <article className="overflow-hidden rounded-[16px] border border-[#ddd5f1] bg-[#f2edfd] shadow-[0_1px_2px_rgba(17,17,17,0.025)]">
+          <div className="px-6 pb-5 pt-7 sm:px-8"><p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#695d89]">Schedule</p><h2 className="mt-3 text-xl font-semibold tracking-[-0.03em] text-[#2d2740]">Upcoming Activities</h2><p className="mt-2 text-sm text-[#756c8a]">接下来最早发生的 5 个活动</p></div>
+          <div className="px-6 pb-6 sm:px-8 sm:pb-8">{upcomingActivities.slice(0, 5).map((activity, index) => <div key={activity.id} className="border-t border-[#dcd2f3] py-5 first:border-t-0 first:pb-7 first:pt-2">
+            <div className={`grid gap-3 ${index === 0 ? "" : "grid-cols-[72px_1fr] items-start"}`}>
+              <p className={`${index === 0 ? "text-[42px]" : "text-lg"} font-semibold uppercase leading-none tracking-[-0.045em] text-[#6d54ba]`}>{formatDate(activity.startDate)}</p>
+              <div className={index === 0 ? "mt-4" : ""}><div className="flex flex-wrap items-start justify-between gap-2"><p className="font-medium text-[#272235]">{activity.name}</p><ActivityStatusBadge status={activity.status} /></div><p className="mt-1.5 text-xs leading-5 text-[#756c8a]">{activity.type} · {activity.location}</p></div>
+            </div>
+          </div>)}</div>
+        </article>
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
+        <article className="overflow-hidden rounded-[16px] border border-[#e4e0da] bg-[#fdfcf9] shadow-[0_1px_2px_rgba(17,17,17,0.025)]">
+          <div className="border-b border-[#e9e5df] px-6 py-6 sm:px-8"><p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#77736d]">Latest records</p><h2 className="mt-3 text-xl font-semibold tracking-[-0.03em] text-[#151412]">Recent Leads</h2><p className="mt-2 text-sm text-[#77736d]">最近创建的 5 条潜在线索</p></div>
+          <div>{recentLeads.map((lead) => <div key={lead.id} className="grid gap-3 border-b border-[#eeeae4] px-6 py-5 last:border-b-0 sm:grid-cols-[1fr_auto_auto] sm:items-center sm:px-8">
+            <div className="min-w-0"><p className="font-medium text-[#292724]">{lead.name} <span className="font-normal text-[#aaa59e]">·</span> {lead.company}</p><p className="mt-1 text-xs text-[#85817b]">{lead.source}</p></div><p className="text-base font-semibold tabular-nums tracking-[-0.02em] text-[#24211f]">{currency.format(lead.potentialValue)}</p><LeadStatusBadge status={lead.status} />
           </div>)}</div>
         </article>
 
-        <article className="overflow-hidden rounded-[14px] border border-[#dddcd7] bg-[#faf9f6] shadow-sm">
-          <div className="border-b border-slate-200 px-5 py-4"><h2 className="font-semibold text-slate-950">Recent Leads</h2><p className="mt-1 text-sm text-slate-500">最近创建的 5 条潜在线索</p></div>
-          <div className="divide-y divide-slate-100">{recentLeads.map((lead) => <div key={lead.id} className="flex flex-wrap items-center justify-between gap-3 p-5">
-            <div className="min-w-0"><p className="font-medium text-slate-900">{lead.name} <span className="font-normal text-slate-400">·</span> {lead.company}</p><p className="mt-1 text-sm text-slate-500">{lead.source} · {currency.format(lead.potentialValue)}</p></div><LeadStatusBadge status={lead.status} />
-          </div>)}</div>
+        <article className="rounded-[16px] border border-[#e4e0da] bg-[#fdfcf9] p-6 shadow-[0_1px_2px_rgba(17,17,17,0.025)] sm:p-8">
+          <p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#77736d]">Acquisition</p>
+          <h2 className="mt-3 text-xl font-semibold tracking-[-0.03em] text-[#151412]">Lead Sources</h2>
+          <div className="mt-7 flex items-end justify-between border-b border-[#e9e5df] pb-7"><div><p className="text-[44px] font-semibold leading-none tracking-[-0.055em] text-[#171615]">{initialLeads.length}</p><p className="mt-2 text-xs text-[#85817b]">Total Leads</p></div><div aria-hidden="true" className="size-16 rounded-full border-[12px] border-[#d8cff5] border-r-[#8268d4]" /></div>
+          <div className="mt-6 space-y-4">
+            {sources.map((item) => (
+              <div key={item.source} className="grid grid-cols-[88px_1fr_24px] items-center gap-3 text-xs">
+                <span className="text-[#6f6b65]">{item.source}</span>
+                <div className="h-1 overflow-hidden rounded-full bg-[#e9e5df]"><div className="h-full rounded-full bg-[#9a82e2]" style={{ width: `${(item.count / sourceMax) * 100}%` }} /></div>
+                <span className="text-right font-semibold tabular-nums text-[#292724]">{item.count}</span>
+              </div>
+            ))}
+          </div>
         </article>
+      </section>
+
+      <section className="border-y border-[#e4e0da] py-8">
+        <div className="mb-8 sm:flex sm:items-end sm:justify-between"><div><p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#77736d]">Pipeline</p><h2 className="mt-3 text-xl font-semibold tracking-[-0.03em] text-[#151412]">Lead Funnel</h2></div><p className="mt-2 text-sm text-[#77736d] sm:mt-0">各阶段当前拥有的线索数量</p></div>
+        <div className="grid gap-7 sm:grid-cols-2 xl:grid-cols-6">
+          {funnel.map((item, index) => (
+            <div key={item.status}>
+              <div className="flex items-end justify-between gap-3"><span className="text-xs font-medium text-[#65615c]">{item.status}</span><span className="text-2xl font-semibold tabular-nums tracking-[-0.04em] text-[#1d1b19]">{item.count}</span></div>
+              <div className="mt-3 h-px overflow-hidden bg-[#dedad4]"><div className="h-full bg-[#8b6fe8]" style={{ width: `${Math.max((item.count / funnelMax) * 100 - index * 3, item.count ? 14 : 0)}%` }} /></div>
+            </div>
+          ))}
+        </div>
       </section>
     </div>
   );
