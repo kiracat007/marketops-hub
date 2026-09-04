@@ -128,6 +128,21 @@ export function parseLeadsCsv(text: string): LeadImportPreview {
   return { rows, missingHeaders: [] };
 }
 
+export function markDuplicateLeadEmails(preview: LeadImportPreview, existingEmails: string[]): LeadImportPreview {
+  const seenEmails = new Set(existingEmails.map((email) => email.trim().toLocaleLowerCase()).filter(Boolean));
+
+  return {
+    ...preview,
+    rows: preview.rows.map((row) => {
+      const email = row.values.email?.trim().toLocaleLowerCase();
+      if (!email || row.errors.length > 0) return row;
+      if (seenEmails.has(email)) return { ...row, lead: null, errors: [...row.errors, "Duplicate email"] };
+      seenEmails.add(email);
+      return row;
+    }),
+  };
+}
+
 export const leadCsvTemplate = `${requiredHeaders.join(",")}\r\nJane Smith,Example Company,jane@example.com,+1 555 0100,Webinar,Industry Webinar,Product Demo,Northstar Creative,New,25000,Alex Morgan,2026-09-03`;
 
 export function downloadLeadCsvTemplate() {

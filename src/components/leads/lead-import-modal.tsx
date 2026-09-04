@@ -1,18 +1,22 @@
 "use client";
 
 import { useState, type ChangeEvent } from "react";
-import { downloadLeadCsvTemplate, parseLeadsCsv, type LeadImportPreview } from "./csv-import";
+import { downloadLeadCsvTemplate, markDuplicateLeadEmails, parseLeadsCsv, type LeadImportPreview } from "./csv-import";
 import type { LeadDraft } from "./types";
 
 type LeadImportModalProps = {
+  existingEmails: string[];
   onClose: () => void;
-  onImport: (leads: LeadDraft[]) => void;
+  onImport: (leads: LeadDraft[]) => Promise<number>;
 };
 
-export function LeadImportModal({ onClose, onImport }: LeadImportModalProps) {
+export function LeadImportModal({ existingEmails, onClose, onImport }: LeadImportModalProps) {
   const [fileName, setFileName] = useState("");
   const [preview, setPreview] = useState<LeadImportPreview | null>(null);
   const [fileError, setFileError] = useState("");
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState("");
+  const [importedCount, setImportedCount] = useState<number | null>(null);
 
   const validRows = preview?.rows.filter((row) => row.lead !== null) ?? [];
   const invalidRows = preview?.rows.filter((row) => row.lead === null) ?? [];
@@ -21,6 +25,8 @@ export function LeadImportModal({ onClose, onImport }: LeadImportModalProps) {
     const file = event.target.files?.[0];
     setPreview(null);
     setFileError("");
+    setImportError("");
+    setImportedCount(null);
     setFileName(file?.name ?? "");
     if (!file) return;
     if (!file.name.toLocaleLowerCase().endsWith(".csv")) {
@@ -32,33 +38,45 @@ export function LeadImportModal({ onClose, onImport }: LeadImportModalProps) {
       const result = parseLeadsCsv(await file.text());
       if (result.missingHeaders.length > 0) setFileError(`缺少字段：${result.missingHeaders.join(", ")}`);
       else if (result.rows.length === 0) setFileError("CSV 中没有可以预览的数据行");
-      else setPreview(result);
+      else setPreview(markDuplicateLeadEmails(result, existingEmails));
     } catch {
       setFileError("无法读取这个 CSV 文件，请检查文件格式");
     }
   }
 
-  function confirmImport() {
+  async function confirmImport() {
     const leads = validRows.flatMap((row) => row.lead ? [row.lead] : []);
-    if (leads.length > 0) onImport(leads);
+    if (leads.length === 0 || importing) return;
+    setImporting(true);
+    setImportError("");
+    try {
+      const count = await onImport(leads);
+      setImportedCount(count);
+    } catch {
+      setImportError("Supabase 导入失败，没有数据被加入列表。请检查网络和数据库权限后重试。");
+    } finally {
+      setImporting(false);
+    }
   }
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-slate-950/45 p-4" role="dialog" aria-modal="true" aria-labelledby="lead-import-title" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+    <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-slate-950/45 p-4" role="dialog" aria-modal="true" aria-labelledby="lead-import-title" onMouseDown={(event) => event.target === event.currentTarget && !importing && onClose()}>
       <div className="my-6 w-full max-w-5xl overflow-hidden rounded-2xl bg-white shadow-2xl">
         <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
           <div><h2 id="lead-import-title" className="text-xl font-semibold text-slate-950">Import Leads from CSV</h2><p className="mt-1 text-sm text-slate-500">选择文件后先检查预览，再确认导入有效数据。</p></div>
-          <button type="button" aria-label="关闭" onClick={onClose} className="rounded-lg px-2 py-1 text-xl text-slate-400 hover:bg-slate-100">×</button>
+          <button type="button" aria-label="关闭" onClick={onClose} disabled={importing} className="rounded-lg px-2 py-1 text-xl text-slate-400 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50">×</button>
         </div>
 
         <div className="space-y-5 px-6 py-5">
           <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <label className="text-sm font-medium text-slate-700">选择 CSV 文件<input type="file" accept=".csv,text/csv" onChange={handleFile} className="mt-2 block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-white file:px-3 file:py-2 file:font-semibold file:text-slate-700 file:shadow-sm" /></label>
+            <label className="text-sm font-medium text-slate-700">选择 CSV 文件<input type="file" accept=".csv,text/csv" onChange={handleFile} disabled={importing} className="mt-2 block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-white file:px-3 file:py-2 file:font-semibold file:text-slate-700 file:shadow-sm disabled:cursor-not-allowed disabled:opacity-50" /></label>
             <button type="button" onClick={downloadLeadCsvTemplate} className="shrink-0 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Download CSV Template</button>
           </div>
 
           {fileName && <p className="text-sm text-slate-500">已选择：<span className="font-medium text-slate-700">{fileName}</span></p>}
           {fileError && <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">{fileError}</div>}
+          {importError && <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700" role="alert">{importError}</div>}
+          {importedCount !== null && <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800" role="status">Imported {importedCount} leads successfully.</div>}
 
           {preview && <>
             <section className="grid gap-3 sm:grid-cols-3" aria-label="导入预览统计">
@@ -78,8 +96,8 @@ export function LeadImportModal({ onClose, onImport }: LeadImportModalProps) {
         </div>
 
         <div className="flex flex-wrap justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
-          <button type="button" onClick={onClose} className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">取消</button>
-          <button type="button" onClick={confirmImport} disabled={validRows.length === 0} className="rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-50">Confirm Import{validRows.length > 0 ? ` (${validRows.length})` : ""}</button>
+          <button type="button" onClick={onClose} disabled={importing} className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">{importedCount !== null ? "关闭" : "取消"}</button>
+          <button type="button" onClick={confirmImport} disabled={validRows.length === 0 || importing || importedCount !== null} className="rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-50">{importing ? "Importing..." : `Confirm Import${validRows.length > 0 ? ` (${validRows.length})` : ""}`}</button>
         </div>
       </div>
     </div>

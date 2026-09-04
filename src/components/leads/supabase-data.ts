@@ -41,6 +41,18 @@ export async function createLeadInSupabase(draft: LeadDraft): Promise<LeadRecord
   return mapLeadRow(data as LeadRow);
 }
 
+export async function createLeadsBatchInSupabase(drafts: LeadDraft[]): Promise<LeadRecord[]> {
+  if (drafts.length === 0) return [];
+
+  const { data, error } = await getSupabaseClient()
+    .from("leads")
+    .insert(drafts.map(toLeadRow))
+    .select(leadColumns);
+
+  if (error) throw error;
+  return ((data ?? []) as LeadRow[]).map(mapLeadRow);
+}
+
 export async function updateLeadInSupabase(id: string, draft: LeadDraft): Promise<LeadRecord> {
   const { data, error } = await getSupabaseClient()
     .from("leads")
