@@ -18,6 +18,7 @@ MarketOps Hub provides a single interface for managing the core objects involved
 
 - **Dashboard:** Key metrics, lead funnel, lead-source breakdown, campaign performance, upcoming activities, and recent leads.
 - **Campaign Management:** Create, search, filter, edit, and delete marketing campaigns, with a detail view for performance and related records.
+- **UTM Link Builder:** Campaign tracking with Source, Medium, Campaign, optional Content/Term, URL validation, parameter preservation, and one-click copy.
 - **Partner Management:** Manage KOLs, influencers, agencies, dealers, vendors, media organizations, and other partners.
 - **Activity Management:** Manage events, exhibitions, field demos, webinars, roadshows, product launches, and offline promotions.
 - **Lead Management:** Track leads, their sources, linked marketing records, status, owner, and potential value with Supabase-backed persistence.
@@ -44,6 +45,7 @@ A campaign defines the marketing initiative. Partners can support its execution,
 - Events and exhibitions
 - Field demos and roadshows
 - Webinar lead generation
+- Generate trackable campaign URLs for social, event, and partner channels
 - North American agricultural marketing operations
 
 ## Tech Stack
