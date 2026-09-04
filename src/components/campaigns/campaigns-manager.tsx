@@ -5,6 +5,7 @@ import { CampaignFormModal } from "./campaign-form-modal";
 import { CampaignTable } from "./campaign-table";
 import { initialCampaigns } from "./mock-data";
 import { campaignChannels, campaignStatuses, type Campaign, type CampaignDraft } from "./types";
+import { UtmBuilderModal } from "./utm-builder-modal";
 
 export function CampaignsManager() {
   const [campaigns, setCampaigns] = useState(initialCampaigns);
@@ -13,6 +14,7 @@ export function CampaignsManager() {
   const [channelFilter, setChannelFilter] = useState("All");
   const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
   const [formOpen, setFormOpen] = useState(false);
+  const [utmBuilderOpen, setUtmBuilderOpen] = useState(false);
 
   const filteredCampaigns = useMemo(() => {
     const term = search.trim().toLocaleLowerCase();
@@ -84,7 +86,10 @@ export function CampaignsManager() {
             <button type="button" onClick={clearFilters} className="h-10 rounded-[10px] px-3 text-[13px] text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-800">清除筛选</button>
           )}
         </div>
-        <button type="button" onClick={openCreateForm} className="h-10 shrink-0 rounded-[10px] bg-zinc-900 px-4 text-[13px] font-medium text-white transition hover:bg-zinc-800">＋ 新建 Campaign</button>
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <button type="button" onClick={() => setUtmBuilderOpen(true)} className="h-10 rounded-[10px] border border-zinc-200 bg-white px-4 text-[13px] font-medium text-zinc-700 transition hover:bg-zinc-50">UTM Builder</button>
+          <button type="button" onClick={openCreateForm} className="h-10 rounded-[10px] bg-zinc-900 px-4 text-[13px] font-medium text-white transition hover:bg-zinc-800">＋ 新建 Campaign</button>
+        </div>
       </section>
 
       <div className="mb-3 flex items-center justify-between px-1 text-sm text-slate-500">
@@ -93,6 +98,7 @@ export function CampaignsManager() {
 
       <CampaignTable campaigns={filteredCampaigns} onEdit={openEditForm} onDelete={deleteCampaign} />
       {formOpen && <CampaignFormModal campaign={editingCampaign} onClose={() => setFormOpen(false)} onSave={saveCampaign} />}
+      {utmBuilderOpen && <UtmBuilderModal onClose={() => setUtmBuilderOpen(false)} />}
     </>
   );
 }
