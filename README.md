@@ -1,6 +1,6 @@
 # MarketOps Hub
 
-**Live Demo:** [https://marketops-hub-git-main-kira-bb54.vercel.app/](https://marketops-hub-git-main-kira-bb54.vercel.app/)
+**Live Demo:** [https://marketops-hub.vercel.app/](https://marketops-hub.vercel.app/)
 
 ## Overview
 
