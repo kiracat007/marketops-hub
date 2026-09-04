@@ -73,6 +73,10 @@ MarketOps Hub currently uses a hybrid data model:
 
 Supabase reads and writes include loading and error states. If a Lead query fails, the interface remains usable and can fall back to the local Lead dataset.
 
+### Database Schema
+
+The repository includes the public Demo database definition and its 12 Lead seed records under [`supabase/`](supabase/). See [`supabase/README.md`](supabase/README.md) before using the SQL files in the Supabase SQL Editor.
+
 ## Project Structure
 
 ```text
