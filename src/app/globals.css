@@ -38,6 +38,38 @@ a {
   text-decoration: none;
 }
 
+.font-display {
+  font-family: var(--font-display), serif;
+  font-weight: 500;
+  font-style: normal;
+  font-synthesis: none;
+  font-kerning: normal;
+}
+
+.metric-value {
+  font-family: var(--font-display), serif;
+  font-variant-numeric: lining-nums;
+  font-feature-settings: "lnum" 1;
+  font-weight: 500;
+  font-style: normal;
+  font-synthesis: none;
+  font-kerning: normal;
+  letter-spacing: -0.035em;
+  line-height: 0.9;
+}
+
+.editorial-date {
+  font-family: var(--font-display), serif;
+  font-variant-numeric: lining-nums;
+  font-feature-settings: "lnum" 1;
+  font-weight: 500;
+  font-style: normal;
+  font-synthesis: none;
+  font-kerning: normal;
+  letter-spacing: -0.025em;
+  line-height: 0.92;
+}
+
 ::selection {
   background: #dcd4fa;
   color: #111111;

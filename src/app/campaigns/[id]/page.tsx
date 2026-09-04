@@ -85,7 +85,7 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
 
         <section className="rounded-[14px] border border-[#cec3f3] bg-[#e9e3fb] p-7 shadow-sm">
           <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#675b86]">Performance</p>
-          <div className="mt-7 flex items-end justify-between gap-4"><div><p className="text-sm text-[#675f78]">Lead 完成进度</p><p className="mt-2 text-[52px] font-bold leading-none tracking-[-0.055em] text-[#17141e]">{completionRate}%</p></div><p className="text-sm text-[#675f78]"><span className="font-semibold text-[#17141e]">{campaign.actualLeads}</span> / {campaign.targetLeads}</p></div>
+          <div className="mt-7 flex items-end justify-between gap-4"><div><p className="text-sm text-[#675f78]">Lead 完成进度</p><p className="metric-value mt-4 whitespace-nowrap text-[44px] text-[#17141e] sm:text-[48px]">{completionRate}%</p></div><p className="text-sm text-[#675f78]"><span className="font-semibold text-[#17141e]">{campaign.actualLeads}</span> / {campaign.targetLeads}</p></div>
           <div className="mt-7 h-2 overflow-hidden rounded-full bg-white/60" role="progressbar" aria-label="Lead 完成率" aria-valuenow={progressWidth} aria-valuemin={0} aria-valuemax={100}><div className="h-full rounded-full bg-[#6f5cae] transition-all" style={{ width: `${progressWidth}%` }} /></div>
           <dl className="mt-6 grid grid-cols-2 gap-4"><InfoItem label="Target Leads" value={String(campaign.targetLeads)} /><InfoItem label="Actual Leads" value={String(campaign.actualLeads)} /></dl>
         </section>
@@ -105,11 +105,11 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
 }
 
 function SummaryCard({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
-  return <div className={`${accent ? "bg-[#eeeafd]" : "bg-[#faf9f6]"} p-6`}><p className="text-[10px] font-medium uppercase tracking-[0.16em] text-[#6f6f6b]">{label}</p><p className="mt-5 text-[30px] font-bold tracking-[-0.045em] text-[#111111]">{value}</p></div>;
+  return <div className={`${accent ? "bg-[#eeeafd]" : "bg-[#faf9f6]"} p-6`}><p className="text-[10px] font-medium uppercase tracking-[0.16em] text-[#6f6f6b]">{label}</p><p className="metric-value mt-5 text-[30px] text-[#111111]">{value}</p></div>;
 }
 
 function InfoItem({ label, value, emphasis = false }: { label: string; value: string; emphasis?: boolean }) {
-  return <div><dt className="text-[10px] font-medium uppercase tracking-[0.16em] text-[#77746f]">{label}</dt><dd className={`mt-2 text-[#111111] ${emphasis ? "text-xl font-bold tracking-[-0.025em]" : "text-sm font-medium"}`}>{value}</dd></div>;
+  return <div><dt className="text-[10px] font-medium uppercase tracking-[0.16em] text-[#77746f]">{label}</dt><dd className={`mt-2 text-[#111111] ${emphasis ? "font-display text-xl" : "text-sm font-medium"}`}>{value}</dd></div>;
 }
 
 function EmptyRelated({ label }: { label: string }) {

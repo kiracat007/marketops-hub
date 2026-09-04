@@ -44,8 +44,8 @@ export function DashboardOverview() {
         <div className="relative grid min-h-[360px] lg:grid-cols-[1.25fr_0.75fr]">
           <div className="relative z-10 flex flex-col justify-center px-7 py-12 sm:px-10 lg:px-12 lg:py-16">
             <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#77736d]">{kpis[0].label}</p>
-            <p className="mt-6 text-[58px] font-semibold leading-[0.9] tracking-[-0.065em] text-[#111111] sm:text-[76px] lg:text-[88px]">{kpis[0].value}</p>
-            <p className="mt-6 max-w-sm text-sm leading-6 text-[#6b6863]">{kpis[0].note}</p>
+            <p className="metric-value mt-6 whitespace-nowrap text-[48px] text-[#111111] sm:text-[58px] lg:text-[68px]">{kpis[0].value}</p>
+            <p className="mt-5 max-w-sm text-sm leading-6 text-[#6b6863]">{kpis[0].note}</p>
           </div>
 
           <div className="relative flex min-h-[250px] items-end overflow-hidden border-t border-[#e4e0da] bg-[#f1edfd] p-7 sm:p-10 lg:min-h-0 lg:border-l lg:border-t-0">
@@ -57,7 +57,7 @@ export function DashboardOverview() {
             </div>
             <div className="relative z-10 max-w-xs">
               <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#695d89]">{kpis[1].label}</p>
-              <p className="mt-4 text-[46px] font-semibold leading-none tracking-[-0.055em] text-[#332a4d] sm:text-[56px]">{kpis[1].value}</p>
+              <p className="editorial-date mt-5 whitespace-nowrap text-[40px] text-[#332a4d] sm:text-[48px] lg:text-[54px]">{kpis[1].value}</p>
               <p className="mt-4 text-sm leading-6 text-[#685f7e]">{kpis[1].note}</p>
             </div>
           </div>
@@ -67,7 +67,7 @@ export function DashboardOverview() {
           {kpis.slice(2).map((item) => (
             <article key={item.label} className="border-b border-[#e4e0da] px-7 py-8 last:border-b-0 sm:[&:nth-child(odd)]:border-r lg:border-b-0 lg:border-r lg:last:border-r-0">
               <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[#77736d]">{item.label}</p>
-              <p className="mt-5 text-[38px] font-semibold leading-none tracking-[-0.05em] text-[#171615] sm:text-[44px]">{item.value}</p>
+              <p className="metric-value mt-5 whitespace-nowrap text-[34px] text-[#171615] sm:text-[40px]">{item.value}</p>
               <p className="mt-4 text-[11px] leading-5 text-[#7c7973]">{item.note}</p>
             </article>
           ))}
@@ -83,7 +83,7 @@ export function DashboardOverview() {
             {initialCampaigns.map((campaign) => {
               const rate = campaign.targetLeads === 0 ? 0 : Math.round((campaign.actualLeads / campaign.targetLeads) * 100);
               return <div key={campaign.id} className="min-w-0 border-t border-[#e9e5df] py-5">
-                <div className="flex items-start justify-between gap-5"><p className="truncate text-sm font-medium text-[#292724]">{campaign.name}</p><span className="shrink-0 text-2xl font-semibold tracking-[-0.045em] text-[#6d54ba]">{rate}%</span></div>
+                <div className="flex items-start justify-between gap-5"><p className="truncate text-sm font-medium text-[#292724]">{campaign.name}</p><span className="font-display shrink-0 text-[22px] leading-none text-[#6d54ba]">{rate}%</span></div>
                 <div className="mt-4 h-px overflow-hidden bg-[#dedad4]"><div className="h-full bg-[#8b6fe8]" style={{ width: `${Math.min(rate, 100)}%` }} /></div>
                 <p className="mt-3 text-[11px] text-[#85817b]">{campaign.actualLeads} actual · {campaign.targetLeads} target leads</p>
               </div>;
@@ -95,7 +95,7 @@ export function DashboardOverview() {
           <div className="px-6 pb-5 pt-7 sm:px-8"><p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#695d89]">Schedule</p><h2 className="mt-3 text-xl font-semibold tracking-[-0.03em] text-[#2d2740]">Upcoming Activities</h2><p className="mt-2 text-sm text-[#756c8a]">接下来最早发生的 5 个活动</p></div>
           <div className="px-6 pb-6 sm:px-8 sm:pb-8">{upcomingActivities.slice(0, 5).map((activity, index) => <div key={activity.id} className="border-t border-[#dcd2f3] py-5 first:border-t-0 first:pb-7 first:pt-2">
             <div className={`grid gap-3 ${index === 0 ? "" : "grid-cols-[72px_1fr] items-start"}`}>
-              <p className={`${index === 0 ? "text-[42px]" : "text-lg"} font-semibold uppercase leading-none tracking-[-0.045em] text-[#6d54ba]`}>{formatDate(activity.startDate)}</p>
+              <p className={`editorial-date ${index === 0 ? "text-[38px] sm:text-[42px]" : "text-lg"} whitespace-nowrap uppercase text-[#6d54ba]`}>{formatDate(activity.startDate)}</p>
               <div className={index === 0 ? "mt-4" : ""}><div className="flex flex-wrap items-start justify-between gap-2"><p className="font-medium text-[#272235]">{activity.name}</p><ActivityStatusBadge status={activity.status} /></div><p className="mt-1.5 text-xs leading-5 text-[#756c8a]">{activity.type} · {activity.location}</p></div>
             </div>
           </div>)}</div>
@@ -113,7 +113,7 @@ export function DashboardOverview() {
         <article className="rounded-[16px] border border-[#e4e0da] bg-[#fdfcf9] p-6 shadow-[0_1px_2px_rgba(17,17,17,0.025)] sm:p-8">
           <p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#77736d]">Acquisition</p>
           <h2 className="mt-3 text-xl font-semibold tracking-[-0.03em] text-[#151412]">Lead Sources</h2>
-          <div className="mt-7 flex items-end justify-between border-b border-[#e9e5df] pb-7"><div><p className="text-[44px] font-semibold leading-none tracking-[-0.055em] text-[#171615]">{initialLeads.length}</p><p className="mt-2 text-xs text-[#85817b]">Total Leads</p></div><div aria-hidden="true" className="size-16 rounded-full border-[12px] border-[#d8cff5] border-r-[#8268d4]" /></div>
+          <div className="mt-7 flex items-end justify-between border-b border-[#e9e5df] pb-7"><div><p className="metric-value text-[40px] text-[#171615]">{initialLeads.length}</p><p className="mt-3 text-xs text-[#85817b]">Total Leads</p></div><div aria-hidden="true" className="size-16 rounded-full border-[12px] border-[#d8cff5] border-r-[#8268d4]" /></div>
           <div className="mt-6 space-y-4">
             {sources.map((item) => (
               <div key={item.source} className="grid grid-cols-[88px_1fr_24px] items-center gap-3 text-xs">
