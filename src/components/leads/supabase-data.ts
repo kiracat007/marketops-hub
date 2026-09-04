@@ -3,7 +3,7 @@ import type { LeadDraft, LeadRecord, LeadSource, LeadStatus } from "./types";
 
 const leadColumns = "id, name, company, email, phone, source, campaign, activity, partner, status, potential_value, owner, created_at";
 
-type LeadRow = {
+export type LeadRow = {
   id: string;
   name: string;
   company: string | null;
@@ -77,7 +77,7 @@ export async function deleteLeadFromSupabase(id: string): Promise<void> {
   if (!data) throw new Error("Supabase 没有返回被删除的 Lead。");
 }
 
-function toLeadRow(draft: LeadDraft) {
+export function toLeadRow(draft: LeadDraft) {
   return {
     name: draft.name,
     company: draft.company,
@@ -94,7 +94,7 @@ function toLeadRow(draft: LeadDraft) {
   };
 }
 
-function mapLeadRow(row: LeadRow): LeadRecord {
+export function mapLeadRow(row: LeadRow): LeadRecord {
   return {
     id: row.id,
     name: row.name,
