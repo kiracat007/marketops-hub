@@ -4,9 +4,10 @@ import { useState, type FormEvent } from "react";
 import type { Activity } from "@/components/activities/types";
 import type { Campaign } from "@/components/campaigns/types";
 import type { Partner } from "@/components/partners/types";
-import { leadSources, leadStatuses, type LeadDraft, type LeadRecord } from "./types";
+import { followUpStatuses, leadSources, leadStatuses, type LeadDraft, type LeadRecord } from "./types";
 
-const emptyLead: LeadDraft = { name: "", company: "", email: "", phone: "", source: "Campaign", campaignId: "", activityId: "", partnerId: "", campaign: "未关联", activity: "未关联", partner: "未关联", status: "New", potentialValue: 0, owner: "", createdAt: "" };
+const emptyLead: LeadDraft = { name: "", company: "", email: "", phone: "", source: "Campaign", campaignId: "", activityId: "", partnerId: "", campaign: "未关联", activity: "未关联", partner: "未关联", status: "New", potentialValue: 0, owner: "", createdAt: "", lastContactedAt: "", nextFollowUpAt: "", followUpStatus: "", notes: "" };
+function toLocalInput(value?: string) { if (!value) return ""; const date = new Date(value); if (Number.isNaN(date.getTime())) return value.slice(0, 16); const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000); return local.toISOString().slice(0, 16); }
 type LeadFormModalProps = { lead: LeadRecord | null; campaigns: Campaign[]; activities: Activity[]; partners: Partner[]; saveError: string; onClose: () => void; onSave: (draft: LeadDraft) => Promise<void> };
 
 export function LeadFormModal({ lead, campaigns, activities, partners, saveError, onClose, onSave }: LeadFormModalProps) {
@@ -43,6 +44,10 @@ export function LeadFormModal({ lead, campaigns, activities, partners, saveError
       <label className={labelClass}>负责人<input name="owner" value={draft.owner} onChange={(e) => update("owner", e.target.value)} className={inputClass} />{errors.owner && <span className="mt-1 block text-xs text-rose-600">{errors.owner}</span>}</label>
       <label className={labelClass}>潜在价值（USD）<input name="potentialValue" type="number" min="0" value={draft.potentialValue} onChange={(e) => update("potentialValue", Number(e.target.value))} className={inputClass} />{errors.potentialValue && <span className="mt-1 block text-xs text-rose-600">{errors.potentialValue}</span>}</label>
       <label className={labelClass}>创建日期<input name="createdAt" type="date" value={draft.createdAt} onChange={(e) => update("createdAt", e.target.value)} className={inputClass} />{errors.createdAt && <span className="mt-1 block text-xs text-rose-600">{errors.createdAt}</span>}</label>
+      <label className={labelClass}>Last Contacted<input name="lastContactedAt" type="datetime-local" value={toLocalInput(draft.lastContactedAt)} onChange={(e) => update("lastContactedAt", e.target.value)} className={inputClass} /></label>
+      <label className={labelClass}>Next Follow-up<input name="nextFollowUpAt" type="datetime-local" value={toLocalInput(draft.nextFollowUpAt)} onChange={(e) => update("nextFollowUpAt", e.target.value)} className={inputClass} /></label>
+      <label className={labelClass}>Follow-up Status<select name="followUpStatus" value={draft.followUpStatus ?? ""} onChange={(e) => update("followUpStatus", e.target.value as LeadDraft["followUpStatus"])} className={inputClass}><option value="">Not set</option>{followUpStatuses.map((item) => <option key={item}>{item}</option>)}</select></label>
+      <label className={`${labelClass} sm:col-span-2`}>Notes<textarea name="notes" rows={3} value={draft.notes ?? ""} onChange={(e) => update("notes", e.target.value)} className={inputClass} /></label>
     </div><div className="flex justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4"><button type="button" onClick={onClose} disabled={saving} className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60">取消</button><button type="submit" disabled={saving} className="rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-60">{saving ? "正在保存..." : lead ? "保存修改" : "创建 Lead"}</button></div></form>
   </div></div>;
 }

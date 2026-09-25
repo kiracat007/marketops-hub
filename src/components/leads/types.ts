@@ -1,8 +1,10 @@
 export const leadSources = ["Campaign", "Event", "Field Demo", "Webinar", "Partner", "Organic", "Other"] as const;
 export const leadStatuses = ["New", "Contacted", "Qualified", "Opportunity", "Won", "Lost"] as const;
+export const followUpStatuses = ["Not Started", "In Progress", "Waiting", "Completed"] as const;
 
 export type LeadSource = (typeof leadSources)[number];
 export type LeadStatus = (typeof leadStatuses)[number];
+export type FollowUpStatus = (typeof followUpStatuses)[number];
 
 export type Lead = {
   id: number | string;
@@ -21,6 +23,10 @@ export type Lead = {
   potentialValue: number;
   owner: string;
   createdAt: string;
+  lastContactedAt?: string;
+  nextFollowUpAt?: string;
+  followUpStatus?: FollowUpStatus | "";
+  notes?: string;
 };
 
 export type LeadRecord = Lead;

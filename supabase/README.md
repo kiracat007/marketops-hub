@@ -1,13 +1,15 @@
 # Supabase Database Files
 
-These files document the MarketOps Hub public Demo database. They contain no API keys, passwords, or service-role credentials.
+These files document the MarketOps Hub public Demo database through the V3 follow-up and Tasks workflow. They contain no API keys, passwords, or service-role credentials.
 
 ## File Purposes
 
-- `schema.sql` is the complete V2 target-schema reference for a **new or empty project**. It is not the migration for an existing V1 database.
+- `schema.sql` is the complete V3 target-schema reference for a **new or empty project**. It is not the migration for an existing database.
 - `migrations/20260925_v2_preflight.sql` is a strictly read-only inspection for an existing V1 project.
 - `migrations/20260925_v2_relational_model.sql` is the transactional, non-destructive V1-to-V2 migration for an existing `public.leads` table.
 - `migrations/20260925_v2_verify.sql` is a strictly read-only post-migration verification.
+- `migrations/20260925_v3_follow_up_tasks.sql` non-destructively adds nullable Lead follow-up fields and the Tasks table to an existing V2 project.
+- `migrations/20260925_v3_follow_up_tasks_verify.sql` is the read-only V3 verification for columns, constraints, RLS, policies, and grants.
 - `seed.sql` is an optional relational Demo dataset. It checks UUID and business-name conflicts before inserting anything.
 - `leads.sql` is a legacy V1 reference and must not be used for a new V2 setup.
 
@@ -33,6 +35,8 @@ The repository does not perform or automate this backup.
 7. Optionally run `seed.sql`. Do not run it when preflight shows a UUID or business-name conflict; resolve that conflict manually first.
 8. Run `migrations/20260925_v2_verify.sql` again.
 9. Manually test the web application and its CRUD relationships.
+
+After V2 is verified, run `migrations/20260925_v3_follow_up_tasks.sql`, then run `migrations/20260925_v3_follow_up_tasks_verify.sql`. The V3 migration is not included in the V2 migration and is never executed by the application.
 
 Do not use `schema.sql` for this V1-to-V2 upgrade. It is a full target reference, not an existing-database migration.
 

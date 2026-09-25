@@ -1,7 +1,7 @@
 import { getSupabaseClient } from "@/lib/supabase/client";
 import type { LeadDraft, LeadRecord, LeadSource, LeadStatus } from "./types";
 
-const leadColumns = "id, name, company, email, phone, source, campaign, activity, partner, campaign_id, activity_id, partner_id, status, potential_value, owner, created_at";
+const leadColumns = "id, name, company, email, phone, source, campaign, activity, partner, campaign_id, activity_id, partner_id, status, potential_value, owner, created_at, last_contacted_at, next_follow_up_at, follow_up_status, notes";
 
 export type LeadRow = {
   id: string;
@@ -20,6 +20,10 @@ export type LeadRow = {
   potential_value: number | string;
   owner: string | null;
   created_at: string;
+  last_contacted_at?: string | null;
+  next_follow_up_at?: string | null;
+  follow_up_status?: import("./types").FollowUpStatus | null;
+  notes?: string | null;
 };
 
 export async function fetchLeadsFromSupabase(): Promise<LeadRecord[]> {
@@ -85,6 +89,18 @@ export async function updateLeadStatusInSupabase(id: string, status: LeadStatus)
   if (error) throw error;
 }
 
+export async function updateLeadFollowUpInSupabase(id: string, changes: { lastContactedAt?: string; nextFollowUpAt?: string; followUpStatus?: import("./types").FollowUpStatus | ""; status?: LeadStatus; notes?: string }): Promise<LeadRecord> {
+  const row: Record<string, string | null> = {};
+  if (changes.lastContactedAt !== undefined) row.last_contacted_at = changes.lastContactedAt || null;
+  if (changes.nextFollowUpAt !== undefined) row.next_follow_up_at = changes.nextFollowUpAt || null;
+  if (changes.followUpStatus !== undefined) row.follow_up_status = changes.followUpStatus || null;
+  if (changes.status !== undefined) row.status = changes.status;
+  if (changes.notes !== undefined) row.notes = changes.notes || null;
+  const { data, error } = await getSupabaseClient().from("leads").update(row).eq("id", id).select(leadColumns).single();
+  if (error) throw error;
+  return mapLeadRow(data as LeadRow);
+}
+
 export function toLeadRow(draft: LeadDraft) {
   return {
     name: draft.name,
@@ -102,7 +118,17 @@ export function toLeadRow(draft: LeadDraft) {
     potential_value: draft.potentialValue,
     owner: draft.owner,
     created_at: draft.createdAt,
+    last_contacted_at: normalizeTimestamp(draft.lastContactedAt),
+    next_follow_up_at: normalizeTimestamp(draft.nextFollowUpAt),
+    follow_up_status: draft.followUpStatus || null,
+    notes: draft.notes || null,
   };
+}
+
+function normalizeTimestamp(value?: string) {
+  if (!value) return null;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? value : parsed.toISOString();
 }
 
 export function mapLeadRow(row: LeadRow): LeadRecord {
@@ -123,5 +149,9 @@ export function mapLeadRow(row: LeadRow): LeadRecord {
     potentialValue: Number(row.potential_value),
     owner: row.owner ?? "",
     createdAt: row.created_at.slice(0, 10),
+    lastContactedAt: row.last_contacted_at ?? "",
+    nextFollowUpAt: row.next_follow_up_at ?? "",
+    followUpStatus: row.follow_up_status ?? "",
+    notes: row.notes ?? "",
   };
 }

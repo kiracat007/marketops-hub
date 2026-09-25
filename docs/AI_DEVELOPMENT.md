@@ -94,6 +94,14 @@ Lead status and Opportunity stage are intentionally not fully bidirectional. Cre
 
 The project owner defined the Opportunity lifecycle, status synchronization rules, KPI formulas, workflow scope, and acceptance criteria. Codex implemented the Supabase CRUD queries, forms and modals, list and pipeline UI, field mapping, state synchronization, and focused tests.
 
+### 18. Lead Follow-up and Task Management
+
+V2 could track Leads, Opportunities, and revenue, but it did not answer the daily operational question: who needs attention, who owns the next action, and when is it due? Without that layer, users would still rely on spreadsheets, calendars, or personal notes to execute follow-ups.
+
+Tasks were introduced as a focused execution tool rather than a general project-management system. Leads can store contact history, next follow-up time, follow-up status, and notes. Tasks can represent follow-ups, calls, emails, meetings, or preparation work and may link to a Lead, Opportunity, Campaign, or Activity. Completing a Follow-up Task records contact time on its Lead but deliberately does not generate another date or advance the Lead to Qualified or Opportunity.
+
+The project owner defined the workflow, follow-up rules, automation boundaries, KPI definitions, and acceptance criteria. Codex prepared the non-destructive migration, Supabase CRUD, time classification and filters, UI, relationship mapping, and focused tests. Activity Log remains illustrative; converting it into a live audit system is a separate future improvement.
+
 ## Human vs. AI Responsibilities
 
 ### Human Responsibilities

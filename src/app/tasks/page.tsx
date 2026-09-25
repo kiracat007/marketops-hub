@@ -1,0 +1,1 @@
+import{AppShell}from"@/components/app-shell";import{TasksManager}from"@/components/tasks/tasks-manager";export default function TasksPage(){return <AppShell eyebrow="Daily Operations" title="Tasks" description="Focus on today’s follow-ups, deadlines, and next actions."><TasksManager/></AppShell>;}

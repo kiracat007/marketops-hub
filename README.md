@@ -22,6 +22,9 @@ MarketOps Hub provides a single interface for managing marketing operations. V2 
 - **Partner Management:** Persist KOLs, influencers, agencies, distributors, vendors, media organizations, and other partners in Supabase.
 - **Activity Management:** Persist activities and connect them to real Campaign and optional Partner foreign keys.
 - **Lead Management:** Track leads, their sources, linked marketing records, status, owner, and potential value with Supabase-backed persistence.
+- **Lead Follow-up:** Record last contact, schedule the next follow-up, track follow-up status and notes, and surface overdue Leads.
+- **Task Management:** Manage daily follow-ups, calls, emails, meetings, and preparation tasks linked to Leads, Opportunities, Campaigns, or Activities.
+- **Needs Attention:** See overdue follow-ups, tasks due today, and new Leads without a scheduled next action.
 - **Activity Log:** Review sample business actions and status changes across the platform.
 - **Search & Filtering:** Narrow records by relevant keywords, categories, channels, sources, and statuses.
 - **CSV Export:** Export all currently visible or filtered leads for use in Excel and other tools.
@@ -35,6 +38,8 @@ MarketOps Hub provides a single interface for managing marketing operations. V2 
 ```text
 Campaign → Activity → Lead → Opportunity → Won / Lost → Revenue
 ```
+
+The daily execution workflow is: Lead → Assign Owner → Contact → Schedule Follow-up → Create Task → Opportunity.
 
 A campaign defines the marketing initiative. Partners can support its execution, while activities represent specific work such as an exhibition or webinar. These efforts generate leads, and the Dashboard summarizes the resulting performance.
 
@@ -93,6 +98,7 @@ src/
 │   ├── activities/      # Activity page
 │   ├── leads/           # Lead page
 │   ├── opportunities/   # Opportunity pipeline and CRUD page
+│   ├── tasks/           # Daily Task and follow-up management
 │   └── activity-log/    # Activity Log page
 └── components/
     ├── campaigns/       # Supabase CRUD, detail metrics, UI, and fallback data
@@ -100,6 +106,7 @@ src/
     ├── activities/      # Supabase Activity CRUD and relationship selectors
     ├── leads/           # Supabase Lead CRUD, foreign keys, CSV tools, and fallback data
     ├── opportunities/   # Opportunity CRUD, pipeline metrics, workflow, and Supabase access
+    ├── tasks/           # Task CRUD, due-date logic, relationships, and Supabase access
     ├── dashboard/       # Dashboard calculations and presentation
     ├── activity-log/    # Log UI, types, and mock data
     └── app-shell.tsx    # Shared navigation and page layout
@@ -144,17 +151,18 @@ npm run build
 ## Current Limitations
 
 - The V2 SQL must be applied manually before relational reads and writes are available.
+- The V3 follow-up and Tasks migration must be applied manually before those features are available.
 - Local mock datasets remain only as a resilience/demo fallback and for the static Activity Log.
 - Valid CSV Import rows are batch inserted into Supabase and persist after page refresh.
 - Duplicate email detection currently happens at the application layer; the database does not yet enforce a unique constraint on email, so concurrent imports could theoretically create duplicates.
 - Activity Log uses sample records and is not a live audit trail.
 - Authentication and role-based permissions are not implemented.
-- The current public demo uses anonymous RLS policies for all five operational tables; this is suitable only for demonstration and not production.
+- After the V3 migration, the public demo uses anonymous RLS policies for all six operational tables; this is suitable only for demonstration and not production.
 - Activity Log is not a live audit trail, and the UI does not subscribe to realtime database events.
 
 ## Security and Demo Notes
 
-The current Supabase Row Level Security policies allow anonymous visitors to select, insert, update, and delete Campaign, Partner, Activity, Lead, and Opportunity records so the public portfolio demo can demonstrate persistent relationships without login. The migration removes historical elevated table privileges from the frontend roles: `anon` receives only Select, Insert, Update, and Delete, while `authenticated` receives no direct business-table permissions in this no-login phase. The frontend uses only the public Supabase Publishable Key; no service role or secret key is exposed.
+The current Supabase Row Level Security policies allow anonymous visitors to select, insert, update, and delete Campaign, Partner, Activity, Lead, Opportunity, and Task records so the public portfolio demo can demonstrate persistent relationships without login. The migrations remove historical elevated table privileges from the frontend roles: `anon` receives only Select, Insert, Update, and Delete, while `authenticated` receives no direct business-table permissions in this no-login phase. The frontend uses only the public Supabase Publishable Key; no service role or secret key is exposed.
 
 This anonymous-write policy is intentionally demo-only and is not appropriate for production. Any visitor could modify or remove Lead data, submit spam, or automate requests. A production version should require authentication, restrict access by role and record ownership, protect sensitive contact information, and add appropriate abuse controls.
 

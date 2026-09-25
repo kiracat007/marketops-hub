@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { initialActivities } from "@/components/activities/mock-data";
 import { ActivityStatusBadge } from "@/components/activities/status-badge";
 import { initialCampaigns } from "@/components/campaigns/mock-data";
@@ -19,12 +20,17 @@ import type { LeadRecord } from "@/components/leads/types";
 import type { Partner } from "@/components/partners/types";
 import type { Opportunity } from "@/components/opportunities/types";
 import { calculatePipelineSummary } from "@/components/opportunities/logic";
+import { fetchTasks } from "@/components/tasks/supabase-data";
+import type { Task } from "@/components/tasks/types";
+import { getTaskDueCategory } from "@/components/tasks/logic";
+import { getFollowUpTiming } from "@/components/leads/follow-up";
 
 const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 const compactCurrency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 1 });
 const dateFormatter = new Intl.DateTimeFormat("zh-CN", { month: "short", day: "numeric", timeZone: "UTC" });
 const editorialDateFormatter = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
-const today = "2026-09-02";
+const now = new Date();
+const today = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
 
 function formatDate(value: string) {
   return dateFormatter.format(new Date(`${value}T00:00:00Z`));
@@ -36,7 +42,9 @@ export function DashboardOverview() {
   const [leads, setLeads] = useState<LeadRecord[]>([]);
   const [partners, setPartners] = useState<Partner[]>([]);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   useEffect(() => { let active = true; Promise.all([fetchCampaigns(), fetchActivities(), fetchLeadsFromSupabase(), fetchPartners(), fetchOpportunities()]).then(([c, a, l, p, o]) => { if (active) { setCampaigns(c); setActivities(a); setLeads(l); setPartners(p); setOpportunities(o); } }).catch(() => { if (active) { setCampaigns(initialCampaigns); setActivities(initialActivities); setLeads(initialLeads); setPartners(initialPartners); setOpportunities([]); } }); return () => { active = false; }; }, []);
+  useEffect(() => { let active=true; fetchTasks().then((items)=>{if(active)setTasks(items);}).catch(()=>{if(active)setTasks([]);}); return()=>{active=false;}; },[]);
   const activeCampaigns = campaigns.filter((item) => item.status === "Active").length;
   const upcomingActivities = activities
     .filter((item) => item.startDate >= today && item.status !== "Completed" && item.status !== "Cancelled")
@@ -56,6 +64,9 @@ export function DashboardOverview() {
     { label: "Active Campaigns", value: activeCampaigns.toString().padStart(2, "0"), note: "正在执行的营销项目" },
     { label: "Total Partners", value: partners.length.toString().padStart(2, "0"), note: "全部外部合作伙伴" },
   ];
+  const overdueFollowUps=leads.filter((lead)=>getFollowUpTiming(lead.nextFollowUpAt,lead.followUpStatus,now)==="overdue").length;
+  const dueTodayTasks=tasks.filter((task)=>getTaskDueCategory(task,now)==="today").length;
+  const leadsWithoutFollowUp=leads.filter((lead)=>lead.status==="New"&&!lead.nextFollowUpAt).length;
 
   return (
     <div className="space-y-12 lg:space-y-16">
@@ -90,6 +101,15 @@ export function DashboardOverview() {
               <p className="mt-4 text-[11px] leading-5 text-[#7c7973]">{item.note}</p>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section className="rounded-[16px] border border-[#ddd5f1] bg-[#f3effc] p-6 sm:p-8">
+        <p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#695d89]">Action Center</p><h2 className="mt-3 text-xl font-semibold text-[#2d2740]">Needs Attention</h2><p className="mt-2 text-sm text-[#756c8a]">The next follow-ups and tasks that need action now.</p>
+        <div className="mt-7 grid gap-px overflow-hidden rounded-[12px] border border-[#dcd2f3] bg-[#dcd2f3] sm:grid-cols-3">
+          <Link href="/leads?followup=overdue" className="bg-[#faf8ff] p-5 transition hover:bg-white"><p className="metric-value text-[32px] text-[#4f3b89]">{overdueFollowUps}</p><p className="mt-2 text-sm text-[#675f78]">overdue follow-ups</p></Link>
+          <Link href="/tasks?due=today" className="bg-[#faf8ff] p-5 transition hover:bg-white"><p className="metric-value text-[32px] text-[#4f3b89]">{dueTodayTasks}</p><p className="mt-2 text-sm text-[#675f78]">tasks due today</p></Link>
+          <Link href="/leads?followup=none" className="bg-[#faf8ff] p-5 transition hover:bg-white"><p className="metric-value text-[32px] text-[#4f3b89]">{leadsWithoutFollowUp}</p><p className="mt-2 text-sm text-[#675f78]">new leads without follow-up</p></Link>
         </div>
       </section>
 

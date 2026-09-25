@@ -10,6 +10,7 @@ import {
   Handshake,
   History,
   LayoutDashboard,
+  ListTodo,
   Megaphone,
   type LucideIcon,
 } from "lucide-react";
@@ -21,6 +22,7 @@ const navigation: Array<{ label: string; href: string; icon: LucideIcon }> = [
   { label: "Activities", href: "/activities", icon: CalendarDays },
   { label: "Leads", href: "/leads", icon: ContactRound },
   { label: "Opportunities", href: "/opportunities", icon: BriefcaseBusiness },
+  { label: "Tasks", href: "/tasks", icon: ListTodo },
   { label: "Activity Log", href: "/activity-log", icon: History },
 ];
 

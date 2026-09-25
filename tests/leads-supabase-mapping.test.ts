@@ -19,6 +19,10 @@ const draft: LeadDraft = {
   potentialValue: 25000,
   owner: "Alex Morgan",
   createdAt: "2026-09-04",
+  lastContactedAt: "",
+  nextFollowUpAt: "",
+  followUpStatus: "",
+  notes: "",
 };
 
 describe("Lead and Supabase row mapping", () => {
@@ -39,6 +43,10 @@ describe("Lead and Supabase row mapping", () => {
       potential_value: 25000,
       owner: "Alex Morgan",
       created_at: "2026-09-04",
+      last_contacted_at: null,
+      next_follow_up_at: null,
+      follow_up_status: null,
+      notes: null,
     });
   });
 
