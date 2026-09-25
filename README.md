@@ -33,7 +33,7 @@ MarketOps Hub provides a single interface for managing marketing operations. V4 
 - **Campaign Detail View:** View campaign information, performance, related activities, related leads, and summary metrics.
 - **Opportunity Management:** Create Opportunities manually or from qualified Leads, manage the full Discovery-to-Won/Lost lifecycle, track pipeline and won revenue, and attribute commercial value to Campaigns.
 - **Marketing Attribution:** Use explainable single-touch Campaign, Activity, and Lead Source attribution based on Supabase relationships.
-- **Campaign Performance:** Compare spend, Leads, qualified Leads, pipeline, revenue, CPL, CPQL, conversion, ROI, ROAS, Win Rate, and target attainment.
+- **Campaign Performance:** Compare spend, Leads, qualified Leads, pipeline, revenue, CPL, CPQL, conversion, ROI, ROAS, Win Rate, and target attainment. Funnel conversion is deduplicated by Lead even when one Lead has multiple Opportunities.
 - **Campaign Report:** Generate a factual Campaign review, export its metrics as CSV, or print/save the report as PDF without an AI service.
 
 ## Core Workflow

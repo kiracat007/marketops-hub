@@ -35,6 +35,6 @@ describe("V2 relational data mapping", () => {
       { id:"o2",leadId:"l2",campaignId:"c1",name:"Two",company:"B",stage:"Lost" as const,value:90,owner:"",expectedCloseDate:"",notes:"",createdAt:created,updatedAt:created },
     ];
     const performance = calculateCampaignPerformance(leads, opportunities);
-    assert.deepEqual({ totalLeads:performance.totalLeads,qualifiedLeads:performance.qualifiedLeads,opportunities:performance.opportunities,wonLeads:performance.wonLeads,pipelineValue:performance.pipelineValue,wonRevenue:performance.wonRevenue }, { totalLeads:2,qualifiedLeads:2,opportunities:2,wonLeads:1,pipelineValue:50,wonRevenue:0 });
+    assert.deepEqual({ totalLeads:performance.totalLeads,qualifiedLeads:performance.qualifiedLeads,opportunities:performance.opportunities,wonLeads:performance.wonLeads,pipelineValue:performance.pipelineValue,wonRevenue:performance.wonRevenue }, { totalLeads:2,qualifiedLeads:2,opportunities:2,wonLeads:0,pipelineValue:50,wonRevenue:0 });
   });
 });

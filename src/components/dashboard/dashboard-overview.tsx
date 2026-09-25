@@ -164,7 +164,7 @@ export function DashboardOverview() {
       </section>
 
       <section className="border-y border-[#e4e0da] py-8">
-        <div className="mb-8 sm:flex sm:items-end sm:justify-between"><div><p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#77736d]">Conversion</p><h2 className="mt-3 text-xl font-semibold tracking-[-0.03em] text-[#151412]">Marketing Funnel</h2></div><p className="mt-2 text-sm text-[#77736d] sm:mt-0">Leads → Qualified → Opportunities → Won</p></div>
+        <div className="mb-8 sm:flex sm:items-end sm:justify-between"><div><p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#77736d]">Conversion</p><h2 className="mt-3 text-xl font-semibold tracking-[-0.03em] text-[#151412]">Marketing Funnel</h2></div><p className="mt-2 text-sm text-[#77736d] sm:mt-0">Leads → Qualified Leads → Leads with Opportunity → Won Leads</p></div>
         <div className="grid gap-px overflow-hidden rounded-[14px] border border-[#e4e0da] bg-[#e4e0da] sm:grid-cols-2 xl:grid-cols-4">
           {funnel.map((item) => (
             <div key={item.label} className="bg-[#fdfcf9] p-6">

@@ -110,6 +110,8 @@ The product owner defined the single-touch attribution rules, qualified-Lead def
 
 Codex implemented a shared pure calculation layer for Campaign, Activity, and Source performance; Supabase relationship aggregation; Dashboard spend, revenue, ROI, Top Campaigns, and funnel views; a richer Campaign Performance workspace; rule-based highlights; factual report generation; CSV export and browser printing; and focused metric tests. Campaign Recorded Spend and Activity Total Spend remain separate values so the application does not silently overwrite business data.
 
+The funnel definition was refined during review to keep every stage on a Lead basis. Opportunity KPIs still count Opportunity records, but Lead-to-Opportunity conversion, Leads with Opportunity, and Won Leads deduplicate `lead_id`, preventing one Lead with multiple deals from inflating funnel conversion.
+
 ## Human vs. AI Responsibilities
 
 ### Human Responsibilities

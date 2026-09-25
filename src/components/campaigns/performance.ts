@@ -10,9 +10,11 @@ export type PerformanceMetrics = {
   spend: number;
   leads: number;
   qualifiedLeads: number;
+  leadsWithOpportunity: number;
   opportunities: number;
   openOpportunities: number;
   wonOpportunities: number;
+  wonLeads: number;
   lostOpportunities: number;
   openPipeline: number;
   wonRevenue: number;
@@ -27,7 +29,7 @@ export type PerformanceMetrics = {
 
 export type ActivityPerformance = { activity: Activity; metrics: PerformanceMetrics };
 export type SourcePerformance = { source: LeadSource; leads: number; qualifiedLeads: number; opportunities: number; wonRevenue: number; conversionRate: number | null };
-export type FunnelStage = { label: "Leads" | "Qualified" | "Opportunities" | "Won"; count: number; conversionFromPrevious: number | null };
+export type FunnelStage = { label: "Leads" | "Qualified Leads" | "Leads with Opportunity" | "Won Leads"; count: number; conversionFromPrevious: number | null };
 
 export function safeRate(numerator: number, denominator: number, multiplier = 1): number | null {
   return denominator > 0 ? (numerator / denominator) * multiplier : null;
@@ -35,23 +37,28 @@ export function safeRate(numerator: number, denominator: number, multiplier = 1)
 
 export function calculatePerformance(leads: LeadRecord[], opportunities: Opportunity[], spend = 0, targetLeads = 0): PerformanceMetrics {
   const qualifiedLeads = leads.filter((lead) => qualifiedStatuses.includes(lead.status)).length;
+  const leadIds = new Set(leads.map((lead) => String(lead.id)));
+  const leadsWithOpportunity = new Set(opportunities.filter((item) => item.leadId && leadIds.has(item.leadId)).map((item) => item.leadId)).size;
   const open = opportunities.filter((item) => openOpportunityStages.includes(item.stage));
   const won = opportunities.filter((item) => item.stage === "Won");
   const lost = opportunities.filter((item) => item.stage === "Lost");
   const wonRevenue = won.reduce((sum, item) => sum + item.value, 0);
+  const wonLeads = new Set(won.filter((item) => item.leadId && leadIds.has(item.leadId)).map((item) => item.leadId)).size;
   return {
     spend,
     leads: leads.length,
     qualifiedLeads,
+    leadsWithOpportunity,
     opportunities: opportunities.length,
     openOpportunities: open.length,
     wonOpportunities: won.length,
+    wonLeads,
     lostOpportunities: lost.length,
     openPipeline: open.reduce((sum, item) => sum + item.value, 0),
     wonRevenue,
     cpl: safeRate(spend, leads.length),
     cpql: safeRate(spend, qualifiedLeads),
-    leadToOpportunityRate: safeRate(opportunities.length, leads.length, 100),
+    leadToOpportunityRate: safeRate(leadsWithOpportunity, leads.length, 100),
     winRate: safeRate(won.length, won.length + lost.length, 100),
     roas: safeRate(wonRevenue, spend),
     roi: safeRate(wonRevenue - spend, spend, 100),
@@ -66,7 +73,7 @@ export function attributedCampaignId(opportunity: Opportunity, leads: LeadRecord
 
 export function calculateCampaignPerformance(leads: LeadRecord[], opportunities: Opportunity[], spend = 0, targetLeads = 0) {
   const metrics = calculatePerformance(leads, opportunities, spend, targetLeads);
-  return { ...metrics, totalLeads: metrics.leads, pipelineValue: metrics.openPipeline, wonLeads: leads.filter((lead) => lead.status === "Won").length };
+  return { ...metrics, totalLeads: metrics.leads, pipelineValue: metrics.openPipeline };
 }
 
 export function calculateActivityPerformance(activities: Activity[], leads: LeadRecord[], opportunities: Opportunity[]): ActivityPerformance[] {
@@ -98,9 +105,11 @@ export function calculateSourcePerformance(leads: LeadRecord[], opportunities: O
 
 export function calculateMarketingFunnel(leads: LeadRecord[], opportunities: Opportunity[]): FunnelStage[] {
   const qualified = leads.filter((lead) => qualifiedStatuses.includes(lead.status)).length;
-  const won = opportunities.filter((item) => item.stage === "Won").length;
-  const counts = [leads.length, qualified, opportunities.length, won];
-  const labels: FunnelStage["label"][] = ["Leads", "Qualified", "Opportunities", "Won"];
+  const leadIds = new Set(leads.map((lead) => String(lead.id)));
+  const leadsWithOpportunity = new Set(opportunities.filter((item) => item.leadId && leadIds.has(item.leadId)).map((item) => item.leadId)).size;
+  const wonLeads = new Set(opportunities.filter((item) => item.stage === "Won" && item.leadId && leadIds.has(item.leadId)).map((item) => item.leadId)).size;
+  const counts = [leads.length, qualified, leadsWithOpportunity, wonLeads];
+  const labels: FunnelStage["label"][] = ["Leads", "Qualified Leads", "Leads with Opportunity", "Won Leads"];
   return labels.map((label, index) => ({ label, count: counts[index], conversionFromPrevious: index === 0 ? null : safeRate(counts[index], counts[index - 1], 100) }));
 }
 
