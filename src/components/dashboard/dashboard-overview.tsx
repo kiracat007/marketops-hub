@@ -7,7 +7,7 @@ import { ActivityStatusBadge } from "@/components/activities/status-badge";
 import { initialCampaigns } from "@/components/campaigns/mock-data";
 import { initialLeads } from "@/components/leads/mock-data";
 import { LeadStatusBadge } from "@/components/leads/status-badge";
-import { leadSources, leadStatuses } from "@/components/leads/types";
+import { leadSources } from "@/components/leads/types";
 import { initialPartners } from "@/components/partners/mock-data";
 import { fetchCampaigns } from "@/components/campaigns/supabase-data";
 import { fetchActivities } from "@/components/activities/supabase-data";
@@ -24,6 +24,7 @@ import { fetchTasks } from "@/components/tasks/supabase-data";
 import type { Task } from "@/components/tasks/types";
 import { getTaskDueCategory } from "@/components/tasks/logic";
 import { getFollowUpTiming } from "@/components/leads/follow-up";
+import { calculateCampaignRows, calculateMarketingFunnel, calculatePerformance, rankCampaignPerformance } from "@/components/campaigns/performance";
 
 const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 const compactCurrency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 1 });
@@ -43,26 +44,29 @@ export function DashboardOverview() {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
-  useEffect(() => { let active = true; Promise.all([fetchCampaigns(), fetchActivities(), fetchLeadsFromSupabase(), fetchPartners(), fetchOpportunities()]).then(([c, a, l, p, o]) => { if (active) { setCampaigns(c); setActivities(a); setLeads(l); setPartners(p); setOpportunities(o); } }).catch(() => { if (active) { setCampaigns(initialCampaigns); setActivities(initialActivities); setLeads(initialLeads); setPartners(initialPartners); setOpportunities([]); } }); return () => { active = false; }; }, []);
+  const [dataWarning, setDataWarning] = useState("");
+  useEffect(() => { let active = true; Promise.all([fetchCampaigns(), fetchActivities(), fetchLeadsFromSupabase(), fetchPartners(), fetchOpportunities()]).then(([c, a, l, p, o]) => { if (active) { setCampaigns(c); setActivities(a); setLeads(l); setPartners(p); setOpportunities(o); setDataWarning(""); } }).catch(() => { if (active) { setCampaigns(initialCampaigns); setActivities(initialActivities); setLeads(initialLeads); setPartners(initialPartners); setOpportunities([]); setDataWarning("无法读取 Supabase Performance 数据。当前仅显示本地 fallback 示例，Pipeline、Revenue 和 ROI 不可用于正式判断。"); } }); return () => { active = false; }; }, []);
   useEffect(() => { let active=true; fetchTasks().then((items)=>{if(active)setTasks(items);}).catch(()=>{if(active)setTasks([]);}); return()=>{active=false;}; },[]);
   const activeCampaigns = campaigns.filter((item) => item.status === "Active").length;
   const upcomingActivities = activities
     .filter((item) => item.startDate >= today && item.status !== "Completed" && item.status !== "Cancelled")
     .sort((a, b) => a.startDate.localeCompare(b.startDate));
   const pipeline = calculatePipelineSummary(opportunities);
-  const funnel = leadStatuses.map((status) => ({ status, count: leads.filter((item) => item.status === status).length }));
+  const totalSpend = campaigns.reduce((sum, campaign) => sum + (campaign.spend ?? 0), 0);
+  const overall = calculatePerformance(leads, opportunities, totalSpend, campaigns.reduce((sum, campaign) => sum + campaign.targetLeads, 0));
+  const campaignRows = rankCampaignPerformance(calculateCampaignRows(campaigns, leads, opportunities));
+  const funnel = calculateMarketingFunnel(leads, opportunities);
   const sources = leadSources.map((source) => ({ source, count: leads.filter((item) => item.source === source).length }));
-  const funnelMax = Math.max(...funnel.map((item) => item.count), 1);
   const sourceMax = Math.max(...sources.map((item) => item.count), 1);
   const recentLeads = [...leads].sort((a, b) => b.createdAt.localeCompare(a.createdAt) || String(b.id).localeCompare(String(a.id))).slice(0, 5);
   const nextActivity = upcomingActivities[0];
   const kpis = [
-    { label: "Open Pipeline", value: compactCurrency.format(pipeline.openPipeline), note: currency.format(pipeline.openPipeline), feature: true },
+    { label: "Total Marketing Spend", value: compactCurrency.format(totalSpend), note: currency.format(totalSpend), feature: true },
     { label: "Next Activity", value: nextActivity ? editorialDateFormatter.format(new Date(`${nextActivity.startDate}T00:00:00Z`)).toUpperCase() : "—", note: nextActivity ? `${nextActivity.name} · ${upcomingActivities.length} upcoming` : "No upcoming activity", feature: true },
-    { label: "Won Revenue", value: compactCurrency.format(pipeline.wonRevenue), note: "已赢得商机的总价值" },
-    { label: "Open Opportunities", value: pipeline.openOpportunities.toString().padStart(2, "0"), note: "Discovery、Proposal 或 Negotiation" },
-    { label: "Active Campaigns", value: activeCampaigns.toString().padStart(2, "0"), note: "正在执行的营销项目" },
-    { label: "Total Partners", value: partners.length.toString().padStart(2, "0"), note: "全部外部合作伙伴" },
+    { label: "Open Pipeline", value: compactCurrency.format(pipeline.openPipeline), note: currency.format(pipeline.openPipeline) },
+    { label: "Won Revenue", value: compactCurrency.format(pipeline.wonRevenue), note: "只统计 Won Opportunities" },
+    { label: "Overall ROI", value: overall.roi === null ? "—" : `${overall.roi.toFixed(1)}%`, note: "(Won Revenue - Spend) / Spend" },
+    { label: "Active Campaigns", value: activeCampaigns.toString().padStart(2, "0"), note: `${partners.length} active partners in workspace` },
   ];
   const overdueFollowUps=leads.filter((lead)=>getFollowUpTiming(lead.nextFollowUpAt,lead.followUpStatus,now)==="overdue").length;
   const dueTodayTasks=tasks.filter((task)=>getTaskDueCategory(task,now)==="today").length;
@@ -70,6 +74,7 @@ export function DashboardOverview() {
 
   return (
     <div className="space-y-12 lg:space-y-16">
+      {dataWarning && <div className="rounded-[12px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800" role="alert">{dataWarning}</div>}
       <section className="overflow-hidden rounded-[18px] border border-[#e4e0da] bg-[#fdfcf9] shadow-[0_1px_2px_rgba(17,17,17,0.025)]" aria-label="关键指标">
         <div className="relative grid min-h-[360px] lg:grid-cols-[1.25fr_0.75fr]">
           <div className="relative z-10 flex flex-col justify-center px-7 py-12 sm:px-10 lg:px-12 lg:py-16">
@@ -116,18 +121,10 @@ export function DashboardOverview() {
       <section className="grid gap-6 xl:grid-cols-[1.45fr_0.85fr]">
         <article className="rounded-[16px] border border-[#e4e0da] bg-[#fdfcf9] p-6 shadow-[0_1px_2px_rgba(17,17,17,0.025)] sm:p-8">
           <p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#77736d]">Performance</p>
-          <h2 className="mt-3 text-xl font-semibold tracking-[-0.03em] text-[#151412]">Campaign Performance</h2>
-          <p className="mt-2 text-sm text-[#77736d]">目标 Leads 与实际 Leads 的完成情况</p>
-          <div className="mt-8 grid gap-x-8 lg:grid-cols-2">
-            {campaigns.map((campaign) => {
-              const actualLeads = leads.filter((lead) => lead.campaignId === String(campaign.id) || (!lead.campaignId && lead.campaign === campaign.name)).length;
-              const rate = campaign.targetLeads === 0 ? 0 : Math.round((actualLeads / campaign.targetLeads) * 100);
-              return <div key={campaign.id} className="min-w-0 border-t border-[#e9e5df] py-5">
-                <div className="flex items-start justify-between gap-5"><p className="truncate text-sm font-medium text-[#292724]">{campaign.name}</p><span className="font-display shrink-0 text-[22px] leading-none text-[#6d54ba]">{rate}%</span></div>
-                <div className="mt-4 h-px overflow-hidden bg-[#dedad4]"><div className="h-full bg-[#8b6fe8]" style={{ width: `${Math.min(rate, 100)}%` }} /></div>
-                <p className="mt-3 text-[11px] text-[#85817b]">{actualLeads} actual · {campaign.targetLeads} target leads</p>
-              </div>;
-            })}
+          <h2 className="mt-3 text-xl font-semibold tracking-[-0.03em] text-[#151412]">Top Performing Campaigns</h2>
+          <p className="mt-2 text-sm text-[#77736d]">优先按 ROI 排序；ROI 不可计算时按 Revenue 和 Pipeline。</p>
+          <div className="mt-7 overflow-x-auto">
+            <table className="w-full min-w-[720px] text-left text-xs"><thead className="border-y border-[#e9e5df] text-[9px] uppercase tracking-[0.16em] text-[#85817b]"><tr><th className="py-3 font-medium">Campaign</th><th className="px-3 py-3 font-medium">Spend</th><th className="px-3 py-3 font-medium">Leads</th><th className="px-3 py-3 font-medium">Pipeline</th><th className="px-3 py-3 font-medium">Revenue</th><th className="py-3 text-right font-medium">ROI</th></tr></thead><tbody className="divide-y divide-[#eeeae4]">{campaignRows.slice(0,5).map(({campaign,metrics})=><tr key={campaign.id}><td className="py-4 font-medium text-[#292724]"><Link href={`/campaigns/${campaign.id}`} className="hover:text-violet-700">{campaign.name}</Link></td><td className="px-3 py-4 tabular-nums text-[#6f6b65]">{currency.format(metrics.spend)}</td><td className="px-3 py-4 tabular-nums text-[#6f6b65]">{metrics.leads}</td><td className="px-3 py-4 tabular-nums text-[#6f6b65]">{currency.format(metrics.openPipeline)}</td><td className="px-3 py-4 tabular-nums text-[#292724]">{currency.format(metrics.wonRevenue)}</td><td className="py-4 text-right font-semibold tabular-nums text-[#6d54ba]">{metrics.roi===null?"—":`${metrics.roi.toFixed(1)}%`}</td></tr>)}</tbody></table>
           </div>
         </article>
 
@@ -167,12 +164,11 @@ export function DashboardOverview() {
       </section>
 
       <section className="border-y border-[#e4e0da] py-8">
-        <div className="mb-8 sm:flex sm:items-end sm:justify-between"><div><p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#77736d]">Pipeline</p><h2 className="mt-3 text-xl font-semibold tracking-[-0.03em] text-[#151412]">Lead Funnel</h2></div><p className="mt-2 text-sm text-[#77736d] sm:mt-0">各阶段当前拥有的线索数量</p></div>
-        <div className="grid gap-7 sm:grid-cols-2 xl:grid-cols-6">
-          {funnel.map((item, index) => (
-            <div key={item.status}>
-              <div className="flex items-end justify-between gap-3"><span className="text-xs font-medium text-[#65615c]">{item.status}</span><span className="text-2xl font-semibold tabular-nums tracking-[-0.04em] text-[#1d1b19]">{item.count}</span></div>
-              <div className="mt-3 h-px overflow-hidden bg-[#dedad4]"><div className="h-full bg-[#8b6fe8]" style={{ width: `${Math.max((item.count / funnelMax) * 100 - index * 3, item.count ? 14 : 0)}%` }} /></div>
+        <div className="mb-8 sm:flex sm:items-end sm:justify-between"><div><p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#77736d]">Conversion</p><h2 className="mt-3 text-xl font-semibold tracking-[-0.03em] text-[#151412]">Marketing Funnel</h2></div><p className="mt-2 text-sm text-[#77736d] sm:mt-0">Leads → Qualified → Opportunities → Won</p></div>
+        <div className="grid gap-px overflow-hidden rounded-[14px] border border-[#e4e0da] bg-[#e4e0da] sm:grid-cols-2 xl:grid-cols-4">
+          {funnel.map((item) => (
+            <div key={item.label} className="bg-[#fdfcf9] p-6">
+              <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-[#77736d]">{item.label}</span><p className="metric-value mt-4 text-[34px] text-[#1d1b19]">{item.count}</p><p className="mt-3 text-xs text-[#85817b]">{item.conversionFromPrevious===null?"Funnel entry":`${item.conversionFromPrevious.toFixed(1)}% from previous stage`}</p>
             </div>
           ))}
         </div>

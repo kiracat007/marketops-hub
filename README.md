@@ -12,7 +12,7 @@ Marketing teams often manage campaigns, partners, activities, and leads across d
 
 ## Solution
 
-MarketOps Hub provides a single interface for managing marketing operations. V2 connects execution to revenue through a relational workflow: Campaign → Activity → Lead → Opportunity → Revenue.
+MarketOps Hub provides a single interface for managing marketing operations. V4 connects execution and follow-up to attributed pipeline, revenue, and performance review.
 
 ## Core Features
 
@@ -32,11 +32,14 @@ MarketOps Hub provides a single interface for managing marketing operations. V2 
 - **Supabase-backed Lead Persistence:** Leads are loaded from Supabase, and Create, Edit, and Delete operations persist across page refreshes.
 - **Campaign Detail View:** View campaign information, performance, related activities, related leads, and summary metrics.
 - **Opportunity Management:** Create Opportunities manually or from qualified Leads, manage the full Discovery-to-Won/Lost lifecycle, track pipeline and won revenue, and attribute commercial value to Campaigns.
+- **Marketing Attribution:** Use explainable single-touch Campaign, Activity, and Lead Source attribution based on Supabase relationships.
+- **Campaign Performance:** Compare spend, Leads, qualified Leads, pipeline, revenue, CPL, CPQL, conversion, ROI, ROAS, Win Rate, and target attainment.
+- **Campaign Report:** Generate a factual Campaign review, export its metrics as CSV, or print/save the report as PDF without an AI service.
 
 ## Core Workflow
 
 ```text
-Campaign → Activity → Lead → Opportunity → Won / Lost → Revenue
+Campaign → Activity → Lead → Follow-up → Opportunity → Revenue → Performance Review
 ```
 
 The daily execution workflow is: Lead → Assign Owner → Contact → Schedule Follow-up → Create Task → Opportunity.
@@ -77,7 +80,8 @@ MarketOps Hub V2 uses Supabase as the primary source for its operational chain:
 - **Leads:** Persisted in Supabase and linked through `campaign_id`, `activity_id`, and `partner_id`; legacy display-name fields remain compatible with CSV workflows.
 - **Opportunities:** Stored separately from Leads and linked to their source Lead and Campaign.
 - **Campaign Detail:** Loads Campaign, Activities, Leads, and Opportunities from Supabase and calculates related performance.
-- **Dashboard:** Uses Supabase data for the core KPI chain, with explicit local fallback if the V2 schema is unavailable.
+- **Attribution:** An Opportunity uses its own `campaign_id` first; Activity and Source outcomes are attributed through its linked Lead. Potential Value is never treated as revenue.
+- **Dashboard:** Uses Supabase data for spend, open pipeline, won revenue, ROI, Top Campaigns, and the real Leads-to-Won funnel, with explicit local fallback if the relational schema is unavailable.
 - **Activity Log:** Remains illustrative rather than a live audit trail.
 - **CSV Import:** Valid rows are batch inserted into Supabase, use database-returned UUIDs and timestamps, and remain available after page refresh. Duplicate email validation runs before import against existing Leads and other rows in the same file. Comparison ignores case and surrounding whitespace, while empty emails are not treated as duplicates.
 

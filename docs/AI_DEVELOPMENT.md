@@ -102,6 +102,14 @@ Tasks were introduced as a focused execution tool rather than a general project-
 
 The project owner defined the workflow, follow-up rules, automation boundaries, KPI definitions, and acceptance criteria. Codex prepared the non-destructive migration, Supabase CRUD, time classification and filters, UI, relationship mapping, and focused tests. Activity Log remains illustrative; converting it into a live audit system is a separate future improvement.
 
+### 19. V4 Marketing Attribution and Campaign Performance
+
+Earlier iterations connected Campaign execution to Lead follow-up, Opportunities, and Won/Lost outcomes, but the product still could not consistently answer whether recorded marketing spend produced pipeline or revenue. V4 therefore focused on measurement rather than another CRUD module.
+
+The product owner defined the single-touch attribution rules, qualified-Lead definition, open-pipeline stages, KPI formulas, ROI versus ROAS distinction, product scope, and acceptance criteria. Multi-touch attribution, advertising integrations, and AI-generated insights were deliberately excluded.
+
+Codex implemented a shared pure calculation layer for Campaign, Activity, and Source performance; Supabase relationship aggregation; Dashboard spend, revenue, ROI, Top Campaigns, and funnel views; a richer Campaign Performance workspace; rule-based highlights; factual report generation; CSV export and browser printing; and focused metric tests. Campaign Recorded Spend and Activity Total Spend remain separate values so the application does not silently overwrite business data.
+
 ## Human vs. AI Responsibilities
 
 ### Human Responsibilities
