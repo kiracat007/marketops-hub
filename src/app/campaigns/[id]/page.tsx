@@ -19,6 +19,10 @@ import type { Campaign } from "@/components/campaigns/types";
 import type { Activity } from "@/components/activities/types";
 import type { Opportunity } from "@/components/opportunities/types";
 import { OpportunityStatusBadge } from "@/components/opportunities/status-badge";
+import { InsightPanel } from "@/components/ai/insight-panel";
+import { fetchTasks } from "@/components/tasks/supabase-data";
+import type { Task } from "@/components/tasks/types";
+import { buildCampaignReviewContext } from "@/lib/ai/marketing-context";
 
 const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 const dateFormatter = new Intl.DateTimeFormat("zh-CN", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" });
@@ -33,6 +37,7 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
   const [relatedActivities, setRelatedActivities] = useState<Activity[]>([]);
   const [supabaseLeads, setSupabaseLeads] = useState<LeadRecord[]>([]);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [loadError, setLoadError] = useState("");
@@ -62,6 +67,12 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
     return () => { active = false; };
   }, [fallbackCampaign, id]);
 
+  useEffect(() => {
+    let active = true;
+    fetchTasks().then((items) => { if (active) setTasks(items); }).catch(() => { if (active) setTasks([]); });
+    return () => { active = false; };
+  }, []);
+
   if (loading && !campaign) return <AppShell eyebrow="Campaign Detail" title="正在加载 Campaign..." description="正在从 Supabase 读取关联数据。"><div className="rounded-2xl border border-zinc-200 bg-white px-6 py-16 text-center text-sm text-zinc-500">Loading...</div></AppShell>;
   if (!campaign || notFound) return <AppShell eyebrow="Campaigns" title="Campaign Not Found" description="没有找到这个 Campaign，它可能不存在或链接不正确。"><div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center shadow-sm"><p className="text-lg font-semibold text-slate-950">无法找到 Campaign</p><p className="mt-2 text-sm text-slate-500">请返回 Campaigns 列表并选择一个有效项目。</p><Link href="/campaigns" className="mt-6 inline-flex rounded-xl bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white">返回 Campaigns</Link></div></AppShell>;
 
@@ -72,6 +83,7 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
   const reportSummary = generateCampaignReportSummary(campaign, performance, activityRows);
   const progressWidth = Math.min(performance.targetLeadAttainment ?? 0, 100);
   const activitySpend = relatedActivities.reduce((sum, activity) => sum + (activity.spend ?? 0), 0);
+  const aiContext = buildCampaignReviewContext(campaign, { activities: relatedActivities, leads: supabaseLeads, opportunities, tasks });
 
   function exportReportCsv() {
     if (!campaign) return;
@@ -95,6 +107,8 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
     </div>
 
     <section className="mt-8 rounded-[14px] border border-violet-100 bg-[#f7f4fd] p-6"><p className="section-label text-violet-700">Performance Highlights</p><div className="mt-4 grid gap-3 sm:grid-cols-2">{highlights.length ? highlights.map((message) => <p key={message} className="text-sm leading-6 text-zinc-700">• {message}</p>) : <p className="text-sm text-zinc-500">当前数据不足以生成可靠的 Highlights。</p>}</div>{activitySpend !== performance.spend && <p className="mt-5 border-t border-violet-100 pt-4 text-xs text-violet-800">Campaign Recorded Spend 为 {currency.format(performance.spend)}，Activity Total Spend 为 {currency.format(activitySpend)}。两者作为独立记录展示，系统不会自动覆盖。</p>}</section>
+
+    <div className="mt-8"><InsightPanel kind="campaign-review" context={aiContext} allowPrint /></div>
 
     <PerformanceTable title="Performance by Activity" description="Opportunity 通过 lead_id → Lead.activity_id 归属于 Activity。" headers={["Activity", "Type", "Spend", "Leads", "Qualified", "Opportunities", "Open Pipeline", "Won Revenue", "CPL", "ROI"]}>{activityRows.map(({ activity, metrics }) => <tr key={activity.id}><Cell strong>{activity.name}</Cell><Cell>{activity.type}</Cell><Cell>{currency.format(metrics.spend)}</Cell><Cell>{metrics.leads}</Cell><Cell>{metrics.qualifiedLeads}</Cell><Cell>{metrics.opportunities}</Cell><Cell>{currency.format(metrics.openPipeline)}</Cell><Cell>{currency.format(metrics.wonRevenue)}</Cell><Cell>{metrics.cpl === null ? "—" : currency.format(metrics.cpl)}</Cell><Cell>{formatPercent(metrics.roi)}</Cell></tr>)}</PerformanceTable>
 

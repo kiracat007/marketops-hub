@@ -25,6 +25,8 @@ import type { Task } from "@/components/tasks/types";
 import { getTaskDueCategory } from "@/components/tasks/logic";
 import { getFollowUpTiming } from "@/components/leads/follow-up";
 import { calculateCampaignRows, calculateMarketingFunnel, calculatePerformance, rankCampaignPerformance } from "@/components/campaigns/performance";
+import { InsightPanel } from "@/components/ai/insight-panel";
+import { buildWeeklyMarketingContext } from "@/lib/ai/marketing-context";
 
 const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 const compactCurrency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 1 });
@@ -71,6 +73,7 @@ export function DashboardOverview() {
   const overdueFollowUps=leads.filter((lead)=>getFollowUpTiming(lead.nextFollowUpAt,lead.followUpStatus,now)==="overdue").length;
   const dueTodayTasks=tasks.filter((task)=>getTaskDueCategory(task,now)==="today").length;
   const leadsWithoutFollowUp=leads.filter((lead)=>lead.status==="New"&&!lead.nextFollowUpAt).length;
+  const aiContext = buildWeeklyMarketingContext({ campaigns, activities, partners, leads, opportunities, tasks, now });
 
   return (
     <div className="space-y-12 lg:space-y-16">
@@ -162,6 +165,8 @@ export function DashboardOverview() {
           </div>
         </article>
       </section>
+
+      <InsightPanel kind="weekly-brief" context={aiContext} />
 
       <section className="border-y border-[#e4e0da] py-8">
         <div className="mb-8 sm:flex sm:items-end sm:justify-between"><div><p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#77736d]">Conversion</p><h2 className="mt-3 text-xl font-semibold tracking-[-0.03em] text-[#151412]">Marketing Funnel</h2></div><p className="mt-2 text-sm text-[#77736d] sm:mt-0">Leads → Qualified Leads → Leads with Opportunity → Won Leads</p></div>

@@ -112,6 +112,14 @@ Codex implemented a shared pure calculation layer for Campaign, Activity, and So
 
 The funnel definition was refined during review to keep every stage on a Lead basis. Opportunity KPIs still count Opportunity records, but Lead-to-Opportunity conversion, Leads with Opportunity, and Won Leads deduplicate `lead_id`, preventing one Lead with multiple deals from inflating funnel conversion.
 
+### 20. V5 AI Marketing Copilot
+
+The next iteration added two deliberately read-only analysis surfaces: an AI Marketing Brief based on the current data snapshot on Dashboard and an AI Campaign Review on Campaign Detail. A shared context builder converts existing Campaign, Activity, Lead, Opportunity, and Task records into aggregate metrics before analysis. It excludes Lead names, email addresses, phone numbers, free-form notes, and task descriptions. True weekly trend or week-over-week analysis remains a future improvement because it requires reliable event timestamps and stored historical snapshots.
+
+The public demo defaults to a deterministic Rule-based Preview, so it works without an AI key and does not make an external request. Optional live analysis uses the official server-side OpenAI SDK and Responses API with a strict JSON schema, output validation, grounding instructions, and a safe fallback when configuration, network access, or response structure is invalid. Insights are not persisted and cannot create or change operational records.
+
+This stage reinforced that adding AI is not only a prompt-writing task. Privacy minimization, cost controls, prompt-injection boundaries, honest data-period wording, deterministic fallback behavior, and structured-output validation are part of product acceptance. The product owner retained responsibility for deciding whether live AI should be enabled and for evaluating all recommendations.
+
 ## Human vs. AI Responsibilities
 
 ### Human Responsibilities

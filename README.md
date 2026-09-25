@@ -35,6 +35,7 @@ MarketOps Hub provides a single interface for managing marketing operations. V4 
 - **Marketing Attribution:** Use explainable single-touch Campaign, Activity, and Lead Source attribution based on Supabase relationships.
 - **Campaign Performance:** Compare spend, Leads, qualified Leads, pipeline, revenue, CPL, CPQL, conversion, ROI, ROAS, Win Rate, and target attainment. Funnel conversion is deduplicated by Lead even when one Lead has multiple Opportunities.
 - **Campaign Report:** Generate a factual Campaign review, export its metrics as CSV, or print/save the report as PDF without an AI service.
+- **AI Marketing Copilot:** Generate a read-only AI Marketing Brief based on the current data snapshot and a Campaign Review from privacy-minimized aggregate data. The public demo defaults to an explicitly labelled rule-based preview; optional live analysis uses the server-side OpenAI Responses API.
 
 ## Core Workflow
 
@@ -66,6 +67,7 @@ A campaign defines the marketing initiative. Partners can support its execution,
 - Supabase
 - PostgreSQL / Supabase Database
 - `@supabase/supabase-js`
+- OpenAI official Node.js SDK and Responses API (optional, server-side only)
 - ESLint
 - Browser-native APIs for CSV import and export
 - Git for version history
@@ -136,6 +138,14 @@ Requirements: a current Node.js LTS release with npm.
 
    `.env.local` is ignored by Git and must not be committed.
 
+   Optional live AI analysis requires server-only values. Keep it disabled unless the deployment has an API key and an approved model:
+
+   ```text
+   OPENAI_API_KEY=your-server-side-key
+   OPENAI_MODEL=your-approved-model
+   AI_LIVE_ENABLED=false
+   ```
+
 4. Start the development server:
 
    ```bash
@@ -163,12 +173,17 @@ npm run build
 - Authentication and role-based permissions are not implemented.
 - After the V3 migration, the public demo uses anonymous RLS policies for all six operational tables; this is suitable only for demonstration and not production.
 - Activity Log is not a live audit trail, and the UI does not subscribe to realtime database events.
+- AI insights are not stored. They analyze the current aggregate snapshot only, do not represent verified week-over-week trends, and may be inaccurate.
+- True weekly trend and week-over-week analysis is a future improvement that requires reliable event timestamps and stored historical snapshots.
+- Live AI is disabled by default. Without all server-side settings, the interface uses a clearly labelled deterministic Rule-based Preview.
 
 ## Security and Demo Notes
 
 The current Supabase Row Level Security policies allow anonymous visitors to select, insert, update, and delete Campaign, Partner, Activity, Lead, Opportunity, and Task records so the public portfolio demo can demonstrate persistent relationships without login. The migrations remove historical elevated table privileges from the frontend roles: `anon` receives only Select, Insert, Update, and Delete, while `authenticated` receives no direct business-table permissions in this no-login phase. The frontend uses only the public Supabase Publishable Key; no service role or secret key is exposed.
 
 This anonymous-write policy is intentionally demo-only and is not appropriate for production. Any visitor could modify or remove Lead data, submit spam, or automate requests. A production version should require authentication, restrict access by role and record ownership, protect sensitive contact information, and add appropriate abuse controls.
+
+The AI endpoint is read-only and sends a privacy-minimized operational snapshot without Lead names, email addresses, phone numbers, or free-form notes. `OPENAI_API_KEY` must remain server-side and must never use a `NEXT_PUBLIC_` prefix. Enabling live AI on a public deployment can create usage costs and abuse risk; production should add authentication, rate limiting, monitoring, and budget controls.
 
 ## Future Improvements
 
