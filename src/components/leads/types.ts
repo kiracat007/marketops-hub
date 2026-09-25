@@ -5,7 +5,10 @@ export type LeadSource = (typeof leadSources)[number];
 export type LeadStatus = (typeof leadStatuses)[number];
 
 export type Lead = {
-  id: number;
+  id: number | string;
+  campaignId?: string;
+  activityId?: string;
+  partnerId?: string;
   name: string;
   company: string;
   email: string;
@@ -20,5 +23,5 @@ export type Lead = {
   createdAt: string;
 };
 
-export type LeadRecord = Omit<Lead, "id"> & { id: number | string };
+export type LeadRecord = Lead;
 export type LeadDraft = Omit<Lead, "id">;

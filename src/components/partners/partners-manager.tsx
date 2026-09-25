@@ -1,18 +1,22 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { initialPartners } from "./mock-data";
 import { PartnerFormModal } from "./partner-form-modal";
 import { PartnerTable } from "./partner-table";
 import { partnerStatuses, partnerTypes, type Partner, type PartnerDraft } from "./types";
+import { createPartner, deletePartner as deletePartnerRecord, fetchPartners, updatePartner } from "./supabase-data";
 
 export function PartnersManager() {
-  const [partners, setPartners] = useState(initialPartners);
+  const [partners, setPartners] = useState<Partner[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
   const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
   const [formOpen, setFormOpen] = useState(false);
+  useEffect(() => { let active = true; fetchPartners().then((items) => { if (active) setPartners(items); }).catch(() => { if (active) { setPartners(initialPartners); setError("无法从 Supabase 读取 Partners，当前显示本地示例数据。"); } }).finally(() => { if (active) setLoading(false); }); return () => { active = false; }; }, []);
 
   const filteredPartners = useMemo(() => {
     const term = search.trim().toLocaleLowerCase();
@@ -34,19 +38,19 @@ export function PartnersManager() {
     setFormOpen(true);
   }
 
-  function savePartner(draft: PartnerDraft) {
-    if (editingPartner) {
-      setPartners((current) => current.map((item) => item.id === editingPartner.id ? { ...draft, id: item.id } : item));
-    } else {
-      setPartners((current) => [{ ...draft, id: Date.now() }, ...current]);
-    }
-    setFormOpen(false);
+  async function savePartner(draft: PartnerDraft) {
+    setError("");
+    try {
+      if (editingPartner && typeof editingPartner.id === "string") { const updated = await updatePartner(editingPartner.id, draft); setPartners((current) => current.map((item) => item.id === updated.id ? updated : item)); }
+      else { const created = await createPartner(draft); setPartners((current) => [created, ...current]); }
+      setFormOpen(false);
+    } catch { setError("Partner 保存失败，请检查 Supabase 连接和权限后重试。"); }
   }
 
-  function deletePartner(partner: Partner) {
-    if (window.confirm(`确定删除“${partner.name}”吗？`)) {
-      setPartners((current) => current.filter((item) => item.id !== partner.id));
-    }
+  async function deletePartner(partner: Partner) {
+    if (!window.confirm(`确定删除“${partner.name}”吗？`)) return;
+    try { if (typeof partner.id === "string") await deletePartnerRecord(partner.id); setPartners((current) => current.filter((item) => item.id !== partner.id)); }
+    catch { setError("Partner 删除失败；关联数据可能仍在使用它。"); }
   }
 
   function clearFilters() {
@@ -59,6 +63,8 @@ export function PartnersManager() {
 
   return (
     <>
+      {loading && <p className="mb-4 text-sm text-zinc-500">正在从 Supabase 加载 Partners...</p>}
+      {error && <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{error}</div>}
       <section className="mb-6 flex flex-col gap-3 rounded-[14px] border border-zinc-200/80 bg-white p-3.5 shadow-sm xl:flex-row xl:items-center xl:justify-between">
         <div className="grid flex-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(240px,1fr)_180px_180px_auto]">
           <label className="relative">

@@ -26,10 +26,10 @@ export function PartnerTable({ partners, onEdit, onDelete }: PartnerTableProps) 
               <th className="px-5 py-3.5 font-semibold">Partner</th>
               <th className="px-4 py-3.5 font-semibold">Type</th>
               <th className="px-4 py-3.5 font-semibold">Region</th>
-              <th className="px-4 py-3.5 font-semibold">联系人</th>
+              <th className="px-4 py-3.5 font-semibold">Contact</th>
               <th className="px-4 py-3.5 font-semibold">Status</th>
-              <th className="px-4 py-3.5 text-center font-semibold">Campaigns</th>
-              <th className="px-4 py-3.5 text-center font-semibold">Leads Generated</th>
+              <th className="px-4 py-3.5 text-center font-semibold">Activities</th>
+              <th className="px-4 py-3.5 text-center font-semibold">Leads</th>
               <th className="px-5 py-3.5 text-right font-semibold">操作</th>
             </tr>
           </thead>
@@ -43,12 +43,12 @@ export function PartnerTable({ partners, onEdit, onDelete }: PartnerTableProps) 
                 <td className="px-4 py-4 text-slate-600">{partner.type}</td>
                 <td className="px-4 py-4 text-slate-600">{partner.region}</td>
                 <td className="px-4 py-4">
-                  <p className="text-slate-700">{partner.contactName}</p>
-                  <p className="mt-1 text-xs text-slate-500">{partner.email}</p>
+                  <p className="text-slate-700">{partner.email || "—"}</p>
+                  <p className="mt-1 text-xs text-slate-500">{partner.phone || "—"}</p>
                 </td>
                 <td className="px-4 py-4"><PartnerStatusBadge status={partner.status} /></td>
-                <td className="px-4 py-4 text-center font-semibold tabular-nums text-slate-700">{partner.campaigns}</td>
-                <td className="px-4 py-4 text-center font-semibold tabular-nums text-slate-700">{partner.leadsGenerated}</td>
+                <td className="px-4 py-4 text-center font-semibold tabular-nums text-slate-700">{partner.activityCount ?? 0}</td>
+                <td className="px-4 py-4 text-center font-semibold tabular-nums text-slate-700">{partner.leadCount ?? 0}</td>
                 <td className="px-5 py-4">
                   <div className="flex justify-end gap-2">
                     <button type="button" onClick={() => onEdit(partner)} className="rounded-lg border border-zinc-200 px-2.5 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-zinc-50 hover:text-zinc-900">编辑</button>

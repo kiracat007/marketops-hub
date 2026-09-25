@@ -2,7 +2,8 @@ import type { ActivityStatus } from "./types";
 
 const styles: Record<ActivityStatus, string> = {
   Planning: "border-[#d7d5cf] bg-[#efeee9] text-[#66645f]",
-  Confirmed: "border-[#cfc4f7] bg-[#eeeafd] text-[#5b4b91]",
+  Upcoming: "border-[#cfc4f7] bg-[#eeeafd] text-[#5b4b91]",
+  "In Progress": "border-[#bfd2dd] bg-[#e9f1f5] text-[#456473]",
   Completed: "border-[#bdcdc3] bg-[#e8efea] text-[#405c49]",
   Cancelled: "border-[#ddc9c6] bg-[#f3eae8] text-[#805751]",
 };

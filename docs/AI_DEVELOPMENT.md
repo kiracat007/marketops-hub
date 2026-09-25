@@ -76,6 +76,16 @@ The CSV Import persistence gap was addressed after the rest of the Lead CRUD flo
 
 Duplicate email validation was also added before import. It compares non-empty email addresses against the currently loaded Supabase Leads and earlier valid rows in the same file, ignoring case and surrounding whitespace. Because the database does not yet enforce a unique email constraint, this remains application-level protection rather than a complete concurrency guarantee.
 
+### 16. V2 Relational Data Refactor
+
+**V1 problem:** Campaign, Activity, and Partner primarily used independent mock datasets while Lead used Supabase. Name strings represented relationships, so the modules could drift and Campaign performance did not share one source of truth.
+
+**V2 decision:** The project owner prioritized the data model and business chain before adding more UI features. Campaign, Activity, Partner, Lead, and Opportunity were designed as separate PostgreSQL tables connected by UUID foreign keys: Campaign → Activity → Lead → Opportunity → Revenue.
+
+Codex prepared the SQL schema and idempotent relational seed, added snake_case-to-camelCase data layers, migrated Campaign/Partner/Activity CRUD, upgraded Lead relationship selectors, moved Campaign Detail and core Dashboard KPIs to Supabase data, and added mapping and performance tests. Existing mock data remains an explicit fallback. The SQL was intentionally not executed automatically; applying it and accepting the resulting cloud data remain human-controlled steps.
+
+For this iteration, the human responsibility covered product positioning, user scenarios, object definitions, core relationships, scope, and acceptance criteria. Codex handled schema preparation, data access, CRUD wiring, mapping, tests, build checks, and debugging.
+
 ## Human vs. AI Responsibilities
 
 ### Human Responsibilities

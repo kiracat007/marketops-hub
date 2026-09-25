@@ -2,7 +2,6 @@ import type { PartnerStatus } from "./types";
 
 const styles: Record<PartnerStatus, string> = {
   Prospect: "border-[#d7d5cf] bg-[#efeee9] text-[#66645f]",
-  Contacted: "border-[#d8cff7] bg-[#f2effd] text-[#665a8f]",
   Active: "border-[#cfc4f7] bg-[#eeeafd] text-[#5b4b91]",
   Inactive: "border-[#d7d5cf] bg-[#efeee9] text-[#77746e]",
 };

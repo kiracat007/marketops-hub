@@ -1,10 +1,35 @@
--- MarketOps Hub V2 target schema reference for a NEW project.
--- Do not use this file to upgrade an existing V1 project.
--- Existing V1 projects must use migrations/20260925_v2_relational_model.sql.
+-- Non-destructive MarketOps Hub V1 -> V2 migration for an existing public.leads table.
 -- THIS POLICY IS FOR DEMO PURPOSES ONLY.
 -- DO NOT USE THIS POLICY FOR SENSITIVE PRODUCTION DATA.
 
 begin;
+
+-- Stop before making changes if the existing Leads table does not match the required baseline.
+do $$
+declare
+  required_column text;
+  leads_id_type text;
+begin
+  if to_regclass('public.leads') is null then
+    raise exception 'Preflight failed: public.leads does not exist.';
+  end if;
+
+  foreach required_column in array array['id','name','email','status','source','potential_value','created_at'] loop
+    if not exists (
+      select 1 from information_schema.columns
+      where table_schema = 'public' and table_name = 'leads' and column_name = required_column
+    ) then
+      raise exception 'Preflight failed: public.leads.% is missing.', required_column;
+    end if;
+  end loop;
+
+  select data_type into leads_id_type
+  from information_schema.columns
+  where table_schema = 'public' and table_name = 'leads' and column_name = 'id';
+  if leads_id_type <> 'uuid' then
+    raise exception 'Preflight failed: public.leads.id must be uuid, found %.', leads_id_type;
+  end if;
+end $$;
 
 create extension if not exists pgcrypto;
 
@@ -69,28 +94,6 @@ create table if not exists public.activities (
   constraint fk_activities_partner foreign key (partner_id) references public.partners(id) on delete set null
 );
 
-create table if not exists public.leads (
-  id uuid constraint pk_leads primary key default gen_random_uuid(),
-  name text not null,
-  company text,
-  email text,
-  phone text,
-  source text not null constraint chk_leads_source check (source in ('Campaign','Event','Field Demo','Webinar','Partner','Organic','Other')),
-  campaign text,
-  activity text,
-  partner text,
-  campaign_id uuid,
-  activity_id uuid,
-  partner_id uuid,
-  status text not null default 'New' constraint chk_leads_status check (status in ('New','Contacted','Qualified','Opportunity','Won','Lost')),
-  potential_value numeric(14,2) not null default 0 constraint chk_leads_potential_value_nonnegative check (potential_value >= 0),
-  owner text,
-  created_at timestamptz not null default now(),
-  constraint fk_leads_campaign foreign key (campaign_id) references public.campaigns(id) on delete set null,
-  constraint fk_leads_activity foreign key (activity_id) references public.activities(id) on delete set null,
-  constraint fk_leads_partner foreign key (partner_id) references public.partners(id) on delete set null
-);
-
 create table if not exists public.opportunities (
   id uuid constraint pk_opportunities primary key default gen_random_uuid(),
   lead_id uuid,
@@ -107,6 +110,64 @@ create table if not exists public.opportunities (
   constraint fk_opportunities_lead foreign key (lead_id) references public.leads(id) on delete set null,
   constraint fk_opportunities_campaign foreign key (campaign_id) references public.campaigns(id) on delete set null
 );
+
+-- Add nullable relationship columns without touching existing Lead rows.
+do $$
+declare
+  relation_column text;
+  existing_type text;
+begin
+  foreach relation_column in array array['campaign_id','activity_id','partner_id'] loop
+    select data_type into existing_type
+    from information_schema.columns
+    where table_schema = 'public' and table_name = 'leads' and column_name = relation_column;
+
+    if existing_type is null then
+      execute format('alter table public.leads add column %I uuid null', relation_column);
+    elsif existing_type <> 'uuid' then
+      raise exception 'Migration stopped: public.leads.% must be uuid, found %.', relation_column, existing_type;
+    end if;
+  end loop;
+end $$;
+
+-- Add or validate the three explicitly named Lead foreign keys.
+do $$
+declare
+  relation record;
+  existing_constraint record;
+  local_attnum smallint;
+begin
+  for relation in
+    select * from (values
+      ('fk_leads_campaign','campaign_id','campaigns'),
+      ('fk_leads_activity','activity_id','activities'),
+      ('fk_leads_partner','partner_id','partners')
+    ) as expected(constraint_name, column_name, target_table)
+  loop
+    select attnum into local_attnum
+    from pg_attribute
+    where attrelid = 'public.leads'::regclass and attname = relation.column_name and not attisdropped;
+
+    select contype, confrelid, confdeltype, conkey
+      into existing_constraint
+    from pg_constraint
+    where conrelid = 'public.leads'::regclass and conname = relation.constraint_name;
+
+    if found then
+      if existing_constraint.contype <> 'f'
+         or existing_constraint.confrelid <> to_regclass(format('public.%I', relation.target_table))
+         or existing_constraint.confdeltype <> 'n'
+         or existing_constraint.conkey <> array[local_attnum]::smallint[] then
+        raise exception 'Migration stopped: constraint % exists but does not match the expected foreign key.', relation.constraint_name;
+      end if;
+    else
+      execute format(
+        'alter table public.leads add constraint %I foreign key (%I) references public.%I(id) on delete set null',
+        relation.constraint_name, relation.column_name, relation.target_table
+      );
+    end if;
+  end loop;
+end $$;
 
 create index if not exists idx_marketops_activities_campaign_id on public.activities(campaign_id);
 create index if not exists idx_marketops_activities_partner_id on public.activities(partner_id);
@@ -131,6 +192,7 @@ alter table public.activities enable row level security;
 alter table public.leads enable row level security;
 alter table public.opportunities enable row level security;
 
+-- Only this project's specifically named policy is replaced. Unknown or legacy policies are untouched.
 do $$
 declare table_name text;
 begin

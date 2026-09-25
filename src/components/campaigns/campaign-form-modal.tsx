@@ -5,14 +5,16 @@ import { campaignChannels, campaignStatuses, type Campaign, type CampaignDraft }
 
 const emptyCampaign: CampaignDraft = {
   name: "",
+  description: "",
+  goal: "",
   channel: "LinkedIn",
   owner: "",
   budget: 0,
+  spend: 0,
   startDate: "",
   endDate: "",
   status: "Planning",
   targetLeads: 0,
-  actualLeads: 0,
 };
 
 type CampaignFormModalProps = {
@@ -34,7 +36,6 @@ export function CampaignFormModal({ campaign, onClose, onSave }: CampaignFormMod
     if (draft.startDate && draft.endDate && draft.endDate < draft.startDate) nextErrors.endDate = "结束日期不能早于开始日期";
     if (draft.budget < 0) nextErrors.budget = "预算不能小于 0";
     if (draft.targetLeads < 0) nextErrors.targetLeads = "目标 Leads 不能小于 0";
-    if (draft.actualLeads < 0) nextErrors.actualLeads = "实际 Leads 不能小于 0";
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   }
@@ -70,6 +71,12 @@ export function CampaignFormModal({ campaign, onClose, onSave }: CampaignFormMod
               <input name="name" value={draft.name} onChange={(e) => update("name", e.target.value)} className={inputClass} placeholder="例如：2027 新品发布 Campaign" />
               {errors.name && <span className="mt-1 block text-xs text-rose-600">{errors.name}</span>}
             </label>
+            <label className={`${labelClass} sm:col-span-2`}>Description
+              <textarea name="description" value={draft.description ?? ""} onChange={(e) => update("description", e.target.value)} className={inputClass} rows={2} />
+            </label>
+            <label className={`${labelClass} sm:col-span-2`}>Goal
+              <input name="goal" value={draft.goal ?? ""} onChange={(e) => update("goal", e.target.value)} className={inputClass} />
+            </label>
             <label className={labelClass}>渠道
               <select name="channel" value={draft.channel} onChange={(e) => update("channel", e.target.value as CampaignDraft["channel"])} className={inputClass}>
                 {campaignChannels.map((channel) => <option key={channel}>{channel}</option>)}
@@ -88,6 +95,9 @@ export function CampaignFormModal({ campaign, onClose, onSave }: CampaignFormMod
                 {campaignStatuses.map((status) => <option key={status}>{status}</option>)}
               </select>
             </label>
+            <label className={labelClass}>已花费（USD）
+              <input name="spend" type="number" min="0" value={draft.spend ?? 0} onChange={(e) => update("spend", Number(e.target.value))} className={inputClass} />
+            </label>
             <label className={labelClass}>开始日期
               <input name="startDate" type="date" value={draft.startDate} onChange={(e) => update("startDate", e.target.value)} className={inputClass} />
               {errors.startDate && <span className="mt-1 block text-xs text-rose-600">{errors.startDate}</span>}
@@ -99,10 +109,6 @@ export function CampaignFormModal({ campaign, onClose, onSave }: CampaignFormMod
             <label className={labelClass}>目标 Leads
               <input name="targetLeads" type="number" min="0" value={draft.targetLeads} onChange={(e) => update("targetLeads", Number(e.target.value))} className={inputClass} />
               {errors.targetLeads && <span className="mt-1 block text-xs text-rose-600">{errors.targetLeads}</span>}
-            </label>
-            <label className={labelClass}>实际 Leads
-              <input name="actualLeads" type="number" min="0" value={draft.actualLeads} onChange={(e) => update("actualLeads", Number(e.target.value))} className={inputClass} />
-              {errors.actualLeads && <span className="mt-1 block text-xs text-rose-600">{errors.actualLeads}</span>}
             </label>
           </div>
           <div className="flex justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">

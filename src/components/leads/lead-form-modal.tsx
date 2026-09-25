@@ -1,21 +1,19 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { initialActivities } from "@/components/activities/mock-data";
-import { initialCampaigns } from "@/components/campaigns/mock-data";
-import { initialPartners } from "@/components/partners/mock-data";
+import type { Activity } from "@/components/activities/types";
+import type { Campaign } from "@/components/campaigns/types";
+import type { Partner } from "@/components/partners/types";
 import { leadSources, leadStatuses, type LeadDraft, type LeadRecord } from "./types";
 
-const campaignNames = ["未关联", ...initialCampaigns.map((item) => item.name)];
-const activityNames = ["未关联", ...initialActivities.map((item) => item.name)];
-const partnerNames = ["未关联", ...initialPartners.map((item) => item.name)];
-const emptyLead: LeadDraft = { name: "", company: "", email: "", phone: "", source: "Campaign", campaign: "未关联", activity: "未关联", partner: "未关联", status: "New", potentialValue: 0, owner: "", createdAt: "" };
-type LeadFormModalProps = { lead: LeadRecord | null; saveError: string; onClose: () => void; onSave: (draft: LeadDraft) => Promise<void> };
+const emptyLead: LeadDraft = { name: "", company: "", email: "", phone: "", source: "Campaign", campaignId: "", activityId: "", partnerId: "", campaign: "未关联", activity: "未关联", partner: "未关联", status: "New", potentialValue: 0, owner: "", createdAt: "" };
+type LeadFormModalProps = { lead: LeadRecord | null; campaigns: Campaign[]; activities: Activity[]; partners: Partner[]; saveError: string; onClose: () => void; onSave: (draft: LeadDraft) => Promise<void> };
 
-export function LeadFormModal({ lead, saveError, onClose, onSave }: LeadFormModalProps) {
+export function LeadFormModal({ lead, campaigns, activities, partners, saveError, onClose, onSave }: LeadFormModalProps) {
   const [draft, setDraft] = useState<LeadDraft>(lead ? { ...lead } : emptyLead);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const availableActivities = draft.campaignId ? activities.filter((item) => item.campaignId === draft.campaignId) : activities;
   function validate() {
     const nextErrors: Record<string, string> = {};
     if (!draft.name.trim()) nextErrors.name = "请输入姓名";
@@ -39,9 +37,9 @@ export function LeadFormModal({ lead, saveError, onClose, onSave }: LeadFormModa
       <label className={labelClass}>电话<input name="phone" type="tel" value={draft.phone} onChange={(e) => update("phone", e.target.value)} className={inputClass} />{errors.phone && <span className="mt-1 block text-xs text-rose-600">{errors.phone}</span>}</label>
       <label className={labelClass}>线索来源<select name="source" value={draft.source} onChange={(e) => update("source", e.target.value as LeadDraft["source"])} className={inputClass}>{leadSources.map((item) => <option key={item}>{item}</option>)}</select></label>
       <label className={labelClass}>线索状态<select name="status" value={draft.status} onChange={(e) => update("status", e.target.value as LeadDraft["status"])} className={inputClass}>{leadStatuses.map((item) => <option key={item}>{item}</option>)}</select></label>
-      <label className={labelClass}>关联 Campaign<select name="campaign" value={draft.campaign} onChange={(e) => update("campaign", e.target.value)} className={inputClass}>{campaignNames.map((item) => <option key={item}>{item}</option>)}</select></label>
-      <label className={labelClass}>关联 Activity<select name="activity" value={draft.activity} onChange={(e) => update("activity", e.target.value)} className={inputClass}>{activityNames.map((item) => <option key={item}>{item}</option>)}</select></label>
-      <label className={labelClass}>关联 Partner<select name="partner" value={draft.partner} onChange={(e) => update("partner", e.target.value)} className={inputClass}>{partnerNames.map((item) => <option key={item}>{item}</option>)}</select></label>
+      <label className={labelClass}>关联 Campaign<select name="campaignId" value={draft.campaignId ?? ""} onChange={(e) => { const item = campaigns.find((entry) => String(entry.id) === e.target.value); setDraft((current) => ({ ...current, campaignId: e.target.value, campaign: item?.name ?? "未关联", activityId: "", activity: "未关联" })); }} className={inputClass}><option value="">未关联</option>{campaigns.map((item) => <option key={item.id} value={String(item.id)}>{item.name}</option>)}</select></label>
+      <label className={labelClass}>关联 Activity<select name="activityId" value={draft.activityId ?? ""} onChange={(e) => { const item = activities.find((entry) => String(entry.id) === e.target.value); setDraft((current) => ({ ...current, activityId: e.target.value, activity: item?.name ?? "未关联" })); }} className={inputClass}><option value="">未关联</option>{availableActivities.map((item) => <option key={item.id} value={String(item.id)}>{item.name}</option>)}</select></label>
+      <label className={labelClass}>关联 Partner<select name="partnerId" value={draft.partnerId ?? ""} onChange={(e) => { const item = partners.find((entry) => String(entry.id) === e.target.value); setDraft((current) => ({ ...current, partnerId: e.target.value, partner: item?.name ?? "未关联" })); }} className={inputClass}><option value="">未关联</option>{partners.map((item) => <option key={item.id} value={String(item.id)}>{item.name}</option>)}</select></label>
       <label className={labelClass}>负责人<input name="owner" value={draft.owner} onChange={(e) => update("owner", e.target.value)} className={inputClass} />{errors.owner && <span className="mt-1 block text-xs text-rose-600">{errors.owner}</span>}</label>
       <label className={labelClass}>潜在价值（USD）<input name="potentialValue" type="number" min="0" value={draft.potentialValue} onChange={(e) => update("potentialValue", Number(e.target.value))} className={inputClass} />{errors.potentialValue && <span className="mt-1 block text-xs text-rose-600">{errors.potentialValue}</span>}</label>
       <label className={labelClass}>创建日期<input name="createdAt" type="date" value={draft.createdAt} onChange={(e) => update("createdAt", e.target.value)} className={inputClass} />{errors.createdAt && <span className="mt-1 block text-xs text-rose-600">{errors.createdAt}</span>}</label>

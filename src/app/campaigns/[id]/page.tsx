@@ -11,6 +11,13 @@ import { initialLeads } from "@/components/leads/mock-data";
 import { LeadStatusBadge } from "@/components/leads/status-badge";
 import { fetchLeadsFromSupabase } from "@/components/leads/supabase-data";
 import type { LeadRecord } from "@/components/leads/types";
+import { fetchCampaign } from "@/components/campaigns/supabase-data";
+import { fetchActivities } from "@/components/activities/supabase-data";
+import { fetchOpportunities } from "@/components/opportunities/supabase-data";
+import { calculateCampaignPerformance } from "@/components/campaigns/performance";
+import type { Campaign } from "@/components/campaigns/types";
+import type { Activity } from "@/components/activities/types";
+import type { Opportunity } from "@/components/opportunities/types";
 
 const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 const dateFormatter = new Intl.DateTimeFormat("zh-CN", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" });
@@ -21,22 +28,27 @@ function formatDate(value: string) {
 
 export default function CampaignDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const campaign = initialCampaigns.find((item) => String(item.id) === id);
+  const fallbackCampaign = initialCampaigns.find((item) => String(item.id) === id);
+  const [campaign, setCampaign] = useState<Campaign | null>(fallbackCampaign ?? null);
+  const [relatedActivities, setRelatedActivities] = useState<Activity[]>([]);
   const [supabaseLeads, setSupabaseLeads] = useState<LeadRecord[]>([]);
-  const [leadsLoading, setLeadsLoading] = useState(Boolean(campaign));
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  const [leadsLoading, setLeadsLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
   const [leadsError, setLeadsError] = useState("");
 
   useEffect(() => {
-    if (!campaign) return;
     let active = true;
-    fetchLeadsFromSupabase()
-      .then((leads) => { if (active) setSupabaseLeads(leads); })
-      .catch(() => { if (active) { setSupabaseLeads(initialLeads); setLeadsError("无法从 Supabase 读取 Related Leads，当前显示本地示例数据。"); } })
+    Promise.all([fetchCampaign(id), fetchActivities(id), fetchLeadsFromSupabase(), fetchOpportunities(id)])
+      .then(([campaignRecord, activities, leads, opportunityRecords]) => { if (active) { setCampaign(campaignRecord); setRelatedActivities(activities); setSupabaseLeads(leads.filter((lead) => lead.campaignId === id)); setOpportunities(opportunityRecords); } })
+      .catch(() => { if (active) { if (fallbackCampaign) { setCampaign(fallbackCampaign); setRelatedActivities(initialActivities.filter((item) => item.campaign === fallbackCampaign.name)); setSupabaseLeads(initialLeads.filter((lead) => lead.campaign === fallbackCampaign.name)); setLeadsError("无法读取 Supabase 关系数据，当前显示本地示例数据。"); } else { setNotFound(true); } } })
       .finally(() => { if (active) setLeadsLoading(false); });
     return () => { active = false; };
-  }, [campaign]);
+  }, [fallbackCampaign, id]);
 
-  if (!campaign) {
+  if (leadsLoading && !campaign) return <AppShell eyebrow="Campaign Detail" title="正在加载 Campaign..." description="正在从 Supabase 读取关联数据。"><div className="rounded-2xl border border-zinc-200 bg-white px-6 py-16 text-center text-sm text-zinc-500">Loading...</div></AppShell>;
+
+  if (!campaign || notFound) {
     return (
       <AppShell eyebrow="Campaigns" title="Campaign Not Found" description="没有找到这个 Campaign，它可能不存在或链接不正确。">
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center shadow-sm">
@@ -48,11 +60,9 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
     );
   }
 
-  const relatedActivities = initialActivities.filter((activity) => activity.campaign === campaign.name);
-  const relatedLeads = supabaseLeads.filter((lead) => lead.campaign === campaign.name);
-  const wonLeads = relatedLeads.filter((lead) => lead.status === "Won").length;
-  const totalPotentialValue = relatedLeads.reduce((total, lead) => total + lead.potentialValue, 0);
-  const completionRate = campaign.targetLeads > 0 ? Math.round((campaign.actualLeads / campaign.targetLeads) * 100) : 0;
+  const relatedLeads = supabaseLeads;
+  const performance = calculateCampaignPerformance(relatedLeads, opportunities);
+  const completionRate = campaign.targetLeads > 0 ? Math.round((performance.totalLeads / campaign.targetLeads) * 100) : 0;
   const progressWidth = Math.min(completionRate, 100);
 
   return (
@@ -61,11 +71,13 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
 
       {leadsError && <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800" role="alert">{leadsError}</div>}
 
-      <section className="grid gap-px overflow-hidden rounded-[16px] border border-[#dddcd7] bg-[#dddcd7] sm:grid-cols-2 xl:grid-cols-4" aria-label="Campaign 汇总">
+      <section className="grid gap-px overflow-hidden rounded-[16px] border border-[#dddcd7] bg-[#dddcd7] sm:grid-cols-2 xl:grid-cols-6" aria-label="Campaign 汇总">
         <SummaryCard label="Related Activities" value={String(relatedActivities.length)} />
-        <SummaryCard label="Related Leads" value={leadsLoading ? "加载中..." : String(relatedLeads.length)} accent />
-        <SummaryCard label="Won Leads" value={leadsLoading ? "加载中..." : String(wonLeads)} />
-        <SummaryCard label="Total Potential Value" value={leadsLoading ? "加载中..." : currency.format(totalPotentialValue)} accent />
+        <SummaryCard label="Total Leads" value={leadsLoading ? "加载中..." : String(performance.totalLeads)} accent />
+        <SummaryCard label="Qualified Leads" value={leadsLoading ? "加载中..." : String(performance.qualifiedLeads)} />
+        <SummaryCard label="Opportunities" value={leadsLoading ? "加载中..." : String(performance.opportunities)} />
+        <SummaryCard label="Won Leads" value={leadsLoading ? "加载中..." : String(performance.wonLeads)} />
+        <SummaryCard label="Pipeline Value" value={leadsLoading ? "加载中..." : currency.format(performance.pipelineValue)} accent />
       </section>
 
       <div className="mt-8 grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
@@ -78,6 +90,7 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
             <InfoItem label="Channel" value={campaign.channel} />
             <InfoItem label="Owner" value={campaign.owner} />
             <InfoItem label="Budget" value={currency.format(campaign.budget)} emphasis />
+            <InfoItem label="Spend" value={currency.format(campaign.spend ?? 0)} emphasis />
             <InfoItem label="Start Date" value={formatDate(campaign.startDate)} emphasis />
             <InfoItem label="End Date" value={formatDate(campaign.endDate)} emphasis />
           </dl>
@@ -85,9 +98,9 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
 
         <section className="rounded-[14px] border border-[#cec3f3] bg-[#e9e3fb] p-7 shadow-sm">
           <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#675b86]">Performance</p>
-          <div className="mt-7 flex items-end justify-between gap-4"><div><p className="text-sm text-[#675f78]">Lead 完成进度</p><p className="metric-value mt-4 whitespace-nowrap text-[44px] text-[#17141e] sm:text-[48px]">{completionRate}%</p></div><p className="text-sm text-[#675f78]"><span className="font-semibold text-[#17141e]">{campaign.actualLeads}</span> / {campaign.targetLeads}</p></div>
+          <div className="mt-7 flex items-end justify-between gap-4"><div><p className="text-sm text-[#675f78]">Lead 完成进度</p><p className="metric-value mt-4 whitespace-nowrap text-[44px] text-[#17141e] sm:text-[48px]">{completionRate}%</p></div><p className="text-sm text-[#675f78]"><span className="font-semibold text-[#17141e]">{performance.totalLeads}</span> / {campaign.targetLeads}</p></div>
           <div className="mt-7 h-2 overflow-hidden rounded-full bg-white/60" role="progressbar" aria-label="Lead 完成率" aria-valuenow={progressWidth} aria-valuemin={0} aria-valuemax={100}><div className="h-full rounded-full bg-[#6f5cae] transition-all" style={{ width: `${progressWidth}%` }} /></div>
-          <dl className="mt-6 grid grid-cols-2 gap-4"><InfoItem label="Target Leads" value={String(campaign.targetLeads)} /><InfoItem label="Actual Leads" value={String(campaign.actualLeads)} /></dl>
+          <dl className="mt-6 grid grid-cols-2 gap-4"><InfoItem label="Target Leads" value={String(campaign.targetLeads)} /><InfoItem label="Actual Leads" value={String(performance.totalLeads)} /></dl>
         </section>
       </div>
 

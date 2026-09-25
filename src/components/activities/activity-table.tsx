@@ -28,7 +28,7 @@ export function ActivityTable({ activities, onEdit, onDelete }: ActivityTablePro
               <td className="px-4 py-4 text-slate-600">{activity.type}</td><td className="max-w-52 px-4 py-4 text-slate-600">{activity.campaign}</td><td className="max-w-48 px-4 py-4 text-slate-600">{activity.partner}</td>
               <td className="px-4 py-5 whitespace-nowrap font-medium text-[#4e4c48]">{formatDate(activity.startDate)}{activity.endDate !== activity.startDate && <> — {formatDate(activity.endDate)}</>}</td>
               <td className="px-4 py-4 text-slate-600">{activity.location}</td><td className="px-4 py-4"><ActivityStatusBadge status={activity.status} /></td>
-              <td className="px-4 py-4 text-center tabular-nums text-slate-600"><span className="font-semibold text-slate-900">{activity.actualAttendees}</span> / {activity.expectedAttendees}</td>
+              <td className="px-4 py-4 text-center font-semibold tabular-nums text-slate-900">{activity.attendees ?? activity.actualAttendees ?? 0}</td>
               <td className="px-5 py-4"><div className="flex justify-end gap-2"><button type="button" onClick={() => onEdit(activity)} className="rounded-lg border border-zinc-200 px-2.5 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-zinc-50 hover:text-zinc-900">编辑</button><button type="button" onClick={() => onDelete(activity)} className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-rose-500 transition hover:bg-rose-50/70 hover:text-rose-700">删除</button></div></td>
             </tr>)}
           </tbody>

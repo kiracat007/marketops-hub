@@ -1,7 +1,7 @@
 import { getSupabaseClient } from "@/lib/supabase/client";
 import type { LeadDraft, LeadRecord, LeadSource, LeadStatus } from "./types";
 
-const leadColumns = "id, name, company, email, phone, source, campaign, activity, partner, status, potential_value, owner, created_at";
+const leadColumns = "id, name, company, email, phone, source, campaign, activity, partner, campaign_id, activity_id, partner_id, status, potential_value, owner, created_at";
 
 export type LeadRow = {
   id: string;
@@ -13,6 +13,9 @@ export type LeadRow = {
   campaign: string | null;
   activity: string | null;
   partner: string | null;
+  campaign_id?: string | null;
+  activity_id?: string | null;
+  partner_id?: string | null;
   status: LeadStatus;
   potential_value: number | string;
   owner: string | null;
@@ -87,6 +90,9 @@ export function toLeadRow(draft: LeadDraft) {
     campaign: draft.campaign,
     activity: draft.activity,
     partner: draft.partner,
+    campaign_id: draft.campaignId || null,
+    activity_id: draft.activityId || null,
+    partner_id: draft.partnerId || null,
     status: draft.status,
     potential_value: draft.potentialValue,
     owner: draft.owner,
@@ -105,6 +111,9 @@ export function mapLeadRow(row: LeadRow): LeadRecord {
     campaign: row.campaign ?? "未关联",
     activity: row.activity ?? "未关联",
     partner: row.partner ?? "未关联",
+    campaignId: row.campaign_id ?? "",
+    activityId: row.activity_id ?? "",
+    partnerId: row.partner_id ?? "",
     status: row.status,
     potentialValue: Number(row.potential_value),
     owner: row.owner ?? "",

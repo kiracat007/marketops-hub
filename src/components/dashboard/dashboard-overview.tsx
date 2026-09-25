@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { initialActivities } from "@/components/activities/mock-data";
 import { ActivityStatusBadge } from "@/components/activities/status-badge";
 import { initialCampaigns } from "@/components/campaigns/mock-data";
@@ -5,6 +8,16 @@ import { initialLeads } from "@/components/leads/mock-data";
 import { LeadStatusBadge } from "@/components/leads/status-badge";
 import { leadSources, leadStatuses } from "@/components/leads/types";
 import { initialPartners } from "@/components/partners/mock-data";
+import { fetchCampaigns } from "@/components/campaigns/supabase-data";
+import { fetchActivities } from "@/components/activities/supabase-data";
+import { fetchLeadsFromSupabase } from "@/components/leads/supabase-data";
+import { fetchPartners } from "@/components/partners/supabase-data";
+import { fetchOpportunities } from "@/components/opportunities/supabase-data";
+import type { Campaign } from "@/components/campaigns/types";
+import type { Activity } from "@/components/activities/types";
+import type { LeadRecord } from "@/components/leads/types";
+import type { Partner } from "@/components/partners/types";
+import type { Opportunity } from "@/components/opportunities/types";
 
 const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 const compactCurrency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 1 });
@@ -17,25 +30,32 @@ function formatDate(value: string) {
 }
 
 export function DashboardOverview() {
-  const activeCampaigns = initialCampaigns.filter((item) => item.status === "Active").length;
-  const upcomingActivities = initialActivities
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [leads, setLeads] = useState<LeadRecord[]>([]);
+  const [partners, setPartners] = useState<Partner[]>([]);
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  useEffect(() => { let active = true; Promise.all([fetchCampaigns(), fetchActivities(), fetchLeadsFromSupabase(), fetchPartners(), fetchOpportunities()]).then(([c, a, l, p, o]) => { if (active) { setCampaigns(c); setActivities(a); setLeads(l); setPartners(p); setOpportunities(o); } }).catch(() => { if (active) { setCampaigns(initialCampaigns); setActivities(initialActivities); setLeads(initialLeads); setPartners(initialPartners); setOpportunities([]); } }); return () => { active = false; }; }, []);
+  const activeCampaigns = campaigns.filter((item) => item.status === "Active").length;
+  const upcomingActivities = activities
     .filter((item) => item.startDate >= today && item.status !== "Completed" && item.status !== "Cancelled")
     .sort((a, b) => a.startDate.localeCompare(b.startDate));
-  const wonLeads = initialLeads.filter((item) => item.status === "Won").length;
-  const totalPotentialValue = initialLeads.reduce((sum, item) => sum + item.potentialValue, 0);
-  const funnel = leadStatuses.map((status) => ({ status, count: initialLeads.filter((item) => item.status === status).length }));
-  const sources = leadSources.map((source) => ({ source, count: initialLeads.filter((item) => item.source === source).length }));
+  const qualifiedLeads = leads.filter((item) => ["Qualified", "Opportunity", "Won"].includes(item.status)).length;
+  const pipelineValue = opportunities.filter((item) => item.stage !== "Lost").reduce((sum, item) => sum + item.value, 0);
+  const totalPotentialValue = pipelineValue || leads.reduce((sum, item) => sum + item.potentialValue, 0);
+  const funnel = leadStatuses.map((status) => ({ status, count: leads.filter((item) => item.status === status).length }));
+  const sources = leadSources.map((source) => ({ source, count: leads.filter((item) => item.source === source).length }));
   const funnelMax = Math.max(...funnel.map((item) => item.count), 1);
   const sourceMax = Math.max(...sources.map((item) => item.count), 1);
-  const recentLeads = [...initialLeads].sort((a, b) => b.createdAt.localeCompare(a.createdAt) || b.id - a.id).slice(0, 5);
+  const recentLeads = [...leads].sort((a, b) => b.createdAt.localeCompare(a.createdAt) || String(b.id).localeCompare(String(a.id))).slice(0, 5);
   const nextActivity = upcomingActivities[0];
   const kpis = [
-    { label: "Total Potential Value", value: compactCurrency.format(totalPotentialValue), note: currency.format(totalPotentialValue), feature: true },
+    { label: "Pipeline Value", value: compactCurrency.format(totalPotentialValue), note: currency.format(totalPotentialValue), feature: true },
     { label: "Next Activity", value: nextActivity ? editorialDateFormatter.format(new Date(`${nextActivity.startDate}T00:00:00Z`)).toUpperCase() : "—", note: nextActivity ? `${nextActivity.name} · ${upcomingActivities.length} upcoming` : "No upcoming activity", feature: true },
     { label: "Active Campaigns", value: activeCampaigns.toString().padStart(2, "0"), note: "正在执行的营销项目" },
-    { label: "Total Leads", value: initialLeads.length.toString().padStart(2, "0"), note: "当前全部潜在线索" },
-    { label: "Won Leads", value: wonLeads.toString().padStart(2, "0"), note: "已经成功转化的线索" },
-    { label: "Total Partners", value: initialPartners.length.toString().padStart(2, "0"), note: "全部外部合作伙伴" },
+    { label: "Total Leads", value: leads.length.toString().padStart(2, "0"), note: "当前全部潜在线索" },
+    { label: "Qualified Leads", value: qualifiedLeads.toString().padStart(2, "0"), note: "Qualified、Opportunity 或 Won" },
+    { label: "Total Partners", value: partners.length.toString().padStart(2, "0"), note: "全部外部合作伙伴" },
   ];
 
   return (
@@ -80,12 +100,13 @@ export function DashboardOverview() {
           <h2 className="mt-3 text-xl font-semibold tracking-[-0.03em] text-[#151412]">Campaign Performance</h2>
           <p className="mt-2 text-sm text-[#77736d]">目标 Leads 与实际 Leads 的完成情况</p>
           <div className="mt-8 grid gap-x-8 lg:grid-cols-2">
-            {initialCampaigns.map((campaign) => {
-              const rate = campaign.targetLeads === 0 ? 0 : Math.round((campaign.actualLeads / campaign.targetLeads) * 100);
+            {campaigns.map((campaign) => {
+              const actualLeads = leads.filter((lead) => lead.campaignId === String(campaign.id) || (!lead.campaignId && lead.campaign === campaign.name)).length;
+              const rate = campaign.targetLeads === 0 ? 0 : Math.round((actualLeads / campaign.targetLeads) * 100);
               return <div key={campaign.id} className="min-w-0 border-t border-[#e9e5df] py-5">
                 <div className="flex items-start justify-between gap-5"><p className="truncate text-sm font-medium text-[#292724]">{campaign.name}</p><span className="font-display shrink-0 text-[22px] leading-none text-[#6d54ba]">{rate}%</span></div>
                 <div className="mt-4 h-px overflow-hidden bg-[#dedad4]"><div className="h-full bg-[#8b6fe8]" style={{ width: `${Math.min(rate, 100)}%` }} /></div>
-                <p className="mt-3 text-[11px] text-[#85817b]">{campaign.actualLeads} actual · {campaign.targetLeads} target leads</p>
+                <p className="mt-3 text-[11px] text-[#85817b]">{actualLeads} actual · {campaign.targetLeads} target leads</p>
               </div>;
             })}
           </div>
@@ -113,7 +134,7 @@ export function DashboardOverview() {
         <article className="rounded-[16px] border border-[#e4e0da] bg-[#fdfcf9] p-6 shadow-[0_1px_2px_rgba(17,17,17,0.025)] sm:p-8">
           <p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#77736d]">Acquisition</p>
           <h2 className="mt-3 text-xl font-semibold tracking-[-0.03em] text-[#151412]">Lead Sources</h2>
-          <div className="mt-7 flex items-end justify-between border-b border-[#e9e5df] pb-7"><div><p className="metric-value text-[40px] text-[#171615]">{initialLeads.length}</p><p className="mt-3 text-xs text-[#85817b]">Total Leads</p></div><div aria-hidden="true" className="size-16 rounded-full border-[12px] border-[#d8cff5] border-r-[#8268d4]" /></div>
+          <div className="mt-7 flex items-end justify-between border-b border-[#e9e5df] pb-7"><div><p className="metric-value text-[40px] text-[#171615]">{leads.length}</p><p className="mt-3 text-xs text-[#85817b]">Total Leads</p></div><div aria-hidden="true" className="size-16 rounded-full border-[12px] border-[#d8cff5] border-r-[#8268d4]" /></div>
           <div className="mt-6 space-y-4">
             {sources.map((item) => (
               <div key={item.source} className="grid grid-cols-[88px_1fr_24px] items-center gap-3 text-xs">

@@ -8,12 +8,10 @@ const emptyPartner: PartnerDraft = {
   type: "KOL",
   company: "",
   region: "",
-  contactName: "",
   email: "",
   phone: "",
   status: "Prospect",
-  campaigns: 0,
-  leadsGenerated: 0,
+  notes: "",
 };
 
 type PartnerFormModalProps = {
@@ -31,12 +29,9 @@ export function PartnerFormModal({ partner, onClose, onSave }: PartnerFormModalP
     if (!draft.name.trim()) nextErrors.name = "请输入合作伙伴名称";
     if (!draft.company.trim()) nextErrors.company = "请输入公司或机构";
     if (!draft.region.trim()) nextErrors.region = "请输入地区";
-    if (!draft.contactName.trim()) nextErrors.contactName = "请输入联系人";
     if (!draft.email.trim()) nextErrors.email = "请输入邮箱";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(draft.email)) nextErrors.email = "请输入有效的邮箱地址";
     if (!draft.phone.trim()) nextErrors.phone = "请输入电话";
-    if (draft.campaigns < 0) nextErrors.campaigns = "Campaign 数量不能小于 0";
-    if (draft.leadsGenerated < 0) nextErrors.leadsGenerated = "Leads 数量不能小于 0";
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   }
@@ -49,7 +44,6 @@ export function PartnerFormModal({ partner, onClose, onSave }: PartnerFormModalP
       name: draft.name.trim(),
       company: draft.company.trim(),
       region: draft.region.trim(),
-      contactName: draft.contactName.trim(),
       email: draft.email.trim(),
       phone: draft.phone.trim(),
     });
@@ -93,10 +87,6 @@ export function PartnerFormModal({ partner, onClose, onSave }: PartnerFormModalP
               <input name="region" value={draft.region} onChange={(e) => update("region", e.target.value)} className={inputClass} placeholder="例如：中国香港" />
               {errors.region && <span className="mt-1 block text-xs text-rose-600">{errors.region}</span>}
             </label>
-            <label className={labelClass}>联系人
-              <input name="contactName" value={draft.contactName} onChange={(e) => update("contactName", e.target.value)} className={inputClass} placeholder="联系人姓名" />
-              {errors.contactName && <span className="mt-1 block text-xs text-rose-600">{errors.contactName}</span>}
-            </label>
             <label className={labelClass}>合作状态
               <select name="status" value={draft.status} onChange={(e) => update("status", e.target.value as PartnerDraft["status"])} className={inputClass}>
                 {partnerStatuses.map((status) => <option key={status}>{status}</option>)}
@@ -110,13 +100,8 @@ export function PartnerFormModal({ partner, onClose, onSave }: PartnerFormModalP
               <input name="phone" type="tel" value={draft.phone} onChange={(e) => update("phone", e.target.value)} className={inputClass} placeholder="+86 138 0000 0000" />
               {errors.phone && <span className="mt-1 block text-xs text-rose-600">{errors.phone}</span>}
             </label>
-            <label className={labelClass}>参与 Campaign 数量
-              <input name="campaigns" type="number" min="0" value={draft.campaigns} onChange={(e) => update("campaigns", Number(e.target.value))} className={inputClass} />
-              {errors.campaigns && <span className="mt-1 block text-xs text-rose-600">{errors.campaigns}</span>}
-            </label>
-            <label className={labelClass}>产生 Leads 数量
-              <input name="leadsGenerated" type="number" min="0" value={draft.leadsGenerated} onChange={(e) => update("leadsGenerated", Number(e.target.value))} className={inputClass} />
-              {errors.leadsGenerated && <span className="mt-1 block text-xs text-rose-600">{errors.leadsGenerated}</span>}
+            <label className={`${labelClass} sm:col-span-2`}>Notes
+              <textarea name="notes" value={draft.notes ?? ""} onChange={(e) => update("notes", e.target.value)} className={inputClass} rows={2} />
             </label>
           </div>
           <div className="flex justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">

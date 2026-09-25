@@ -4,6 +4,7 @@ const styles: Record<CampaignStatus, string> = {
   Planning: "border-[#d7d5cf] bg-[#efeee9] text-[#66645f]",
   Active: "border-[#cfc4f7] bg-[#eeeafd] text-[#5b4b91]",
   Completed: "border-[#bdcdc3] bg-[#e8efea] text-[#405c49]",
+  Paused: "border-[#d7d5cf] bg-[#efeee9] text-[#66645f]",
 };
 
 export function StatusBadge({ status }: { status: CampaignStatus }) {

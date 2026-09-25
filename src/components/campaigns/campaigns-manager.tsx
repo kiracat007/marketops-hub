@@ -1,20 +1,31 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CampaignFormModal } from "./campaign-form-modal";
 import { CampaignTable } from "./campaign-table";
 import { initialCampaigns } from "./mock-data";
 import { campaignChannels, campaignStatuses, type Campaign, type CampaignDraft } from "./types";
 import { UtmBuilderModal } from "./utm-builder-modal";
+import { createCampaign, deleteCampaign as deleteCampaignRecord, fetchCampaigns, updateCampaign } from "./supabase-data";
 
 export function CampaignsManager() {
-  const [campaigns, setCampaigns] = useState(initialCampaigns);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [channelFilter, setChannelFilter] = useState("All");
   const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [utmBuilderOpen, setUtmBuilderOpen] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    fetchCampaigns().then((items) => { if (active) setCampaigns(items); }).catch(() => {
+      if (active) { setCampaigns(initialCampaigns); setError("无法从 Supabase 读取 Campaigns，当前显示本地示例数据。"); }
+    }).finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
 
   const filteredCampaigns = useMemo(() => {
     const term = search.trim().toLocaleLowerCase();
@@ -36,19 +47,26 @@ export function CampaignsManager() {
     setFormOpen(true);
   }
 
-  function saveCampaign(draft: CampaignDraft) {
-    if (editingCampaign) {
-      setCampaigns((current) => current.map((item) => item.id === editingCampaign.id ? { ...draft, id: item.id } : item));
-    } else {
-      setCampaigns((current) => [{ ...draft, id: Date.now() }, ...current]);
-    }
-    setFormOpen(false);
+  async function saveCampaign(draft: CampaignDraft) {
+    setError("");
+    try {
+      if (editingCampaign && typeof editingCampaign.id === "string") {
+        const updated = await updateCampaign(editingCampaign.id, draft);
+        setCampaigns((current) => current.map((item) => item.id === updated.id ? updated : item));
+      } else {
+        const created = await createCampaign(draft);
+        setCampaigns((current) => [created, ...current]);
+      }
+      setFormOpen(false);
+    } catch { setError("Campaign 保存失败，请检查 Supabase 连接和权限后重试。"); }
   }
 
-  function deleteCampaign(campaign: Campaign) {
-    if (window.confirm(`确定删除“${campaign.name}”吗？`)) {
+  async function deleteCampaign(campaign: Campaign) {
+    if (!window.confirm(`确定删除“${campaign.name}”吗？`)) return;
+    try {
+      if (typeof campaign.id === "string") await deleteCampaignRecord(campaign.id);
       setCampaigns((current) => current.filter((item) => item.id !== campaign.id));
-    }
+    } catch { setError("Campaign 删除失败；关联数据可能仍在使用它。"); }
   }
 
   function clearFilters() {
@@ -61,6 +79,8 @@ export function CampaignsManager() {
 
   return (
     <>
+      {loading && <p className="mb-4 text-sm text-zinc-500">正在从 Supabase 加载 Campaigns...</p>}
+      {error && <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{error}</div>}
       <section className="mb-6 flex flex-col gap-3 rounded-[14px] border border-zinc-200/80 bg-white p-3.5 shadow-sm xl:flex-row xl:items-center xl:justify-between">
         <div className="grid flex-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(240px,1fr)_180px_180px_auto]">
           <label className="relative">

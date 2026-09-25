@@ -1,5 +1,5 @@
--- MarketOps Hub: Leads table and development seed data
--- Run this script once in the Supabase SQL Editor.
+-- LEGACY V1 ONLY: single-table Leads setup retained for historical reference.
+-- New V2 environments must run schema.sql and then seed.sql instead.
 
 create table public.leads (
   id uuid primary key default gen_random_uuid(),

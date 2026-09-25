@@ -12,15 +12,15 @@ Marketing teams often manage campaigns, partners, activities, and leads across d
 
 ## Solution
 
-MarketOps Hub provides a single interface for managing the core objects involved in marketing operations. Teams can organize campaigns, external partners, execution activities, and generated leads, then use the Dashboard to review results and upcoming work at a glance.
+MarketOps Hub provides a single interface for managing marketing operations. V2 connects execution to revenue through a relational workflow: Campaign → Activity → Lead → Opportunity → Revenue.
 
 ## Core Features
 
 - **Dashboard:** Key metrics, lead funnel, lead-source breakdown, campaign performance, upcoming activities, and recent leads.
-- **Campaign Management:** Create, search, filter, edit, and delete marketing campaigns, with a detail view for performance and related records.
+- **Campaign Management:** Supabase-backed create, search, filter, edit, and delete, with a detail view for performance and related records.
 - **UTM Link Builder:** Campaign tracking with Source, Medium, Campaign, optional Content/Term, URL validation, parameter preservation, and one-click copy.
-- **Partner Management:** Manage KOLs, influencers, agencies, dealers, vendors, media organizations, and other partners.
-- **Activity Management:** Manage events, exhibitions, field demos, webinars, roadshows, product launches, and offline promotions.
+- **Partner Management:** Persist KOLs, influencers, agencies, distributors, vendors, media organizations, and other partners in Supabase.
+- **Activity Management:** Persist activities and connect them to real Campaign and optional Partner foreign keys.
 - **Lead Management:** Track leads, their sources, linked marketing records, status, owner, and potential value with Supabase-backed persistence.
 - **Activity Log:** Review sample business actions and status changes across the platform.
 - **Search & Filtering:** Narrow records by relevant keywords, categories, channels, sources, and statuses.
@@ -28,11 +28,12 @@ MarketOps Hub provides a single interface for managing the core objects involved
 - **CSV Import:** CSV import with validation and Supabase persistence, including preview, error identification, batch insertion of valid records, duplicate email checks, and a compatible downloadable template.
 - **Supabase-backed Lead Persistence:** Leads are loaded from Supabase, and Create, Edit, and Delete operations persist across page refreshes.
 - **Campaign Detail View:** View campaign information, performance, related activities, related leads, and summary metrics.
+- **Opportunity Data Model:** Store qualified commercial opportunities separately from Leads and calculate pipeline value.
 
 ## Core Workflow
 
 ```text
-Campaign → Partner / Activity → Lead → Dashboard
+Campaign → Activity → Lead → Opportunity → Won / Lost → Revenue
 ```
 
 A campaign defines the marketing initiative. Partners can support its execution, while activities represent specific work such as an exhibition or webinar. These efforts generate leads, and the Dashboard summarizes the resulting performance.
@@ -65,19 +66,21 @@ No authentication provider or external charting library is currently used.
 
 ## Architecture and Data Persistence
 
-MarketOps Hub currently uses a hybrid data model:
+MarketOps Hub V2 uses Supabase as the primary source for its operational chain:
 
-- **Leads:** Loaded from and persisted to a Supabase `leads` table. Create, edit, and delete operations use database-generated UUIDs and remain available after refresh.
-- **Campaign Detail Related Leads:** Loaded dynamically from Supabase and filtered by matching the Lead `campaign` value to the current Campaign name.
-- **Campaigns, Partners, and Activities:** Continue to use local mock data and browser memory for CRUD interactions.
-- **Dashboard and Activity Log:** Continue to use the project's mock datasets. Activity Log is illustrative rather than a live audit trail.
+- **Campaigns, Partners, and Activities:** Loaded from Supabase with persistent CRUD. Activities use real Campaign and Partner UUID foreign keys.
+- **Leads:** Persisted in Supabase and linked through `campaign_id`, `activity_id`, and `partner_id`; legacy display-name fields remain compatible with CSV workflows.
+- **Opportunities:** Stored separately from Leads and linked to their source Lead and Campaign.
+- **Campaign Detail:** Loads Campaign, Activities, Leads, and Opportunities from Supabase and calculates related performance.
+- **Dashboard:** Uses Supabase data for the core KPI chain, with explicit local fallback if the V2 schema is unavailable.
+- **Activity Log:** Remains illustrative rather than a live audit trail.
 - **CSV Import:** Valid rows are batch inserted into Supabase, use database-returned UUIDs and timestamps, and remain available after page refresh. Duplicate email validation runs before import against existing Leads and other rows in the same file. Comparison ignores case and surrounding whitespace, while empty emails are not treated as duplicates.
 
 Supabase reads and writes include loading and error states. If a Lead query fails, the interface remains usable and can fall back to the local Lead dataset.
 
 ### Database Schema
 
-The repository includes the public Demo database definition and its 12 Lead seed records under [`supabase/`](supabase/). See [`supabase/README.md`](supabase/README.md) before using the SQL files in the Supabase SQL Editor.
+The repository includes the V2 target-schema reference, a non-destructive V1-to-V2 migration, read-only preflight/verification scripts, and an optional protected Thailand Q4 Market Expansion seed under [`supabase/`](supabase/). Existing projects must use the migration workflow rather than running `schema.sql` directly. See [`supabase/README.md`](supabase/README.md) before using any SQL file.
 
 ## Project Structure
 
@@ -91,10 +94,11 @@ src/
 │   ├── leads/           # Lead page
 │   └── activity-log/    # Activity Log page
 └── components/
-    ├── campaigns/       # Campaign UI, types, and mock data
-    ├── partners/        # Partner UI, types, and mock data
-    ├── activities/      # Activity UI, types, and mock data
-    ├── leads/           # Supabase Lead CRUD, CSV tools, types, and fallback data
+    ├── campaigns/       # Supabase CRUD, detail metrics, UI, and fallback data
+    ├── partners/        # Supabase Partner CRUD and fallback data
+    ├── activities/      # Supabase Activity CRUD and relationship selectors
+    ├── leads/           # Supabase Lead CRUD, foreign keys, CSV tools, and fallback data
+    ├── opportunities/   # Opportunity types and Supabase data access
     ├── dashboard/       # Dashboard calculations and presentation
     ├── activity-log/    # Log UI, types, and mock data
     └── app-shell.tsx    # Shared navigation and page layout
@@ -138,19 +142,19 @@ npm run build
 
 ## Current Limitations
 
-- Campaigns, Partners, and Activities still primarily use local mock data.
-- Leads are persisted in Supabase.
+- The V2 SQL must be applied manually before relational reads and writes are available.
+- Local mock datasets remain only as a resilience/demo fallback and for the static Activity Log.
 - Valid CSV Import rows are batch inserted into Supabase and persist after page refresh.
 - Duplicate email detection currently happens at the application layer; the database does not yet enforce a unique constraint on email, so concurrent imports could theoretically create duplicates.
 - Activity Log uses sample records and is not a live audit trail.
 - Authentication and role-based permissions are not implemented.
-- The current public demo uses an anonymous RLS policy for the Leads table, which is suitable only for demonstration purposes and not for production.
-- Dashboard and some cross-module data are not fully synchronized in real time.
-- Campaign Detail uses mock Campaign and Activity data, while Related Leads are loaded dynamically from Supabase.
+- The current public demo uses anonymous RLS policies for all five operational tables; this is suitable only for demonstration and not production.
+- Opportunity has a database/data layer in this phase but no standalone management page yet.
+- Activity Log is not a live audit trail, and the UI does not subscribe to realtime database events.
 
 ## Security and Demo Notes
 
-The current Supabase Row Level Security policies allow anonymous visitors to select, insert, update, and delete Lead records so the public portfolio demo can demonstrate persistent CRUD without login. The frontend uses only the public Supabase Publishable Key; no service role or secret key is exposed.
+The current Supabase Row Level Security policies allow anonymous visitors to select, insert, update, and delete Campaign, Partner, Activity, Lead, and Opportunity records so the public portfolio demo can demonstrate persistent relationships without login. The migration removes historical elevated table privileges from the frontend roles: `anon` receives only Select, Insert, Update, and Delete, while `authenticated` receives no direct business-table permissions in this no-login phase. The frontend uses only the public Supabase Publishable Key; no service role or secret key is exposed.
 
 This anonymous-write policy is intentionally demo-only and is not appropriate for production. Any visitor could modify or remove Lead data, submit spam, or automate requests. A production version should require authentication, restrict access by role and record ownership, protect sensitive contact information, and add appropriate abuse controls.
 
@@ -159,8 +163,8 @@ This anonymous-write policy is intentionally demo-only and is not appropriate fo
 - Authentication
 - Role-based permissions
 - Enforce database-level email uniqueness where appropriate
-- Migrate Campaigns, Partners, and Activities to Supabase
 - Real-time cross-module synchronization
+- Opportunity management UI and sales-stage workflows
 - Live audit logging
 - Third-party integrations
 
