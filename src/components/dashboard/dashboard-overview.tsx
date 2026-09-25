@@ -18,6 +18,7 @@ import type { Activity } from "@/components/activities/types";
 import type { LeadRecord } from "@/components/leads/types";
 import type { Partner } from "@/components/partners/types";
 import type { Opportunity } from "@/components/opportunities/types";
+import { calculatePipelineSummary } from "@/components/opportunities/logic";
 
 const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 const compactCurrency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 1 });
@@ -40,9 +41,7 @@ export function DashboardOverview() {
   const upcomingActivities = activities
     .filter((item) => item.startDate >= today && item.status !== "Completed" && item.status !== "Cancelled")
     .sort((a, b) => a.startDate.localeCompare(b.startDate));
-  const qualifiedLeads = leads.filter((item) => ["Qualified", "Opportunity", "Won"].includes(item.status)).length;
-  const pipelineValue = opportunities.filter((item) => item.stage !== "Lost").reduce((sum, item) => sum + item.value, 0);
-  const totalPotentialValue = pipelineValue || leads.reduce((sum, item) => sum + item.potentialValue, 0);
+  const pipeline = calculatePipelineSummary(opportunities);
   const funnel = leadStatuses.map((status) => ({ status, count: leads.filter((item) => item.status === status).length }));
   const sources = leadSources.map((source) => ({ source, count: leads.filter((item) => item.source === source).length }));
   const funnelMax = Math.max(...funnel.map((item) => item.count), 1);
@@ -50,11 +49,11 @@ export function DashboardOverview() {
   const recentLeads = [...leads].sort((a, b) => b.createdAt.localeCompare(a.createdAt) || String(b.id).localeCompare(String(a.id))).slice(0, 5);
   const nextActivity = upcomingActivities[0];
   const kpis = [
-    { label: "Pipeline Value", value: compactCurrency.format(totalPotentialValue), note: currency.format(totalPotentialValue), feature: true },
+    { label: "Open Pipeline", value: compactCurrency.format(pipeline.openPipeline), note: currency.format(pipeline.openPipeline), feature: true },
     { label: "Next Activity", value: nextActivity ? editorialDateFormatter.format(new Date(`${nextActivity.startDate}T00:00:00Z`)).toUpperCase() : "—", note: nextActivity ? `${nextActivity.name} · ${upcomingActivities.length} upcoming` : "No upcoming activity", feature: true },
+    { label: "Won Revenue", value: compactCurrency.format(pipeline.wonRevenue), note: "已赢得商机的总价值" },
+    { label: "Open Opportunities", value: pipeline.openOpportunities.toString().padStart(2, "0"), note: "Discovery、Proposal 或 Negotiation" },
     { label: "Active Campaigns", value: activeCampaigns.toString().padStart(2, "0"), note: "正在执行的营销项目" },
-    { label: "Total Leads", value: leads.length.toString().padStart(2, "0"), note: "当前全部潜在线索" },
-    { label: "Qualified Leads", value: qualifiedLeads.toString().padStart(2, "0"), note: "Qualified、Opportunity 或 Won" },
     { label: "Total Partners", value: partners.length.toString().padStart(2, "0"), note: "全部外部合作伙伴" },
   ];
 

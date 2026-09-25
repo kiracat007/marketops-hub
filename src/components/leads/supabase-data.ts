@@ -80,6 +80,11 @@ export async function deleteLeadFromSupabase(id: string): Promise<void> {
   if (!data) throw new Error("Supabase 没有返回被删除的 Lead。");
 }
 
+export async function updateLeadStatusInSupabase(id: string, status: LeadStatus): Promise<void> {
+  const { error } = await getSupabaseClient().from("leads").update({ status }).eq("id", id);
+  if (error) throw error;
+}
+
 export function toLeadRow(draft: LeadDraft) {
   return {
     name: draft.name,

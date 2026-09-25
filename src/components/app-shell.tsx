@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import {
   CalendarDays,
+  BriefcaseBusiness,
   ContactRound,
   Handshake,
   History,
@@ -19,6 +20,7 @@ const navigation: Array<{ label: string; href: string; icon: LucideIcon }> = [
   { label: "Partners", href: "/partners", icon: Handshake },
   { label: "Activities", href: "/activities", icon: CalendarDays },
   { label: "Leads", href: "/leads", icon: ContactRound },
+  { label: "Opportunities", href: "/opportunities", icon: BriefcaseBusiness },
   { label: "Activity Log", href: "/activity-log", icon: History },
 ];
 

@@ -28,7 +28,7 @@ MarketOps Hub provides a single interface for managing marketing operations. V2 
 - **CSV Import:** CSV import with validation and Supabase persistence, including preview, error identification, batch insertion of valid records, duplicate email checks, and a compatible downloadable template.
 - **Supabase-backed Lead Persistence:** Leads are loaded from Supabase, and Create, Edit, and Delete operations persist across page refreshes.
 - **Campaign Detail View:** View campaign information, performance, related activities, related leads, and summary metrics.
-- **Opportunity Data Model:** Store qualified commercial opportunities separately from Leads and calculate pipeline value.
+- **Opportunity Management:** Create Opportunities manually or from qualified Leads, manage the full Discovery-to-Won/Lost lifecycle, track pipeline and won revenue, and attribute commercial value to Campaigns.
 
 ## Core Workflow
 
@@ -92,13 +92,14 @@ src/
 │   ├── partners/        # Partner page
 │   ├── activities/      # Activity page
 │   ├── leads/           # Lead page
+│   ├── opportunities/   # Opportunity pipeline and CRUD page
 │   └── activity-log/    # Activity Log page
 └── components/
     ├── campaigns/       # Supabase CRUD, detail metrics, UI, and fallback data
     ├── partners/        # Supabase Partner CRUD and fallback data
     ├── activities/      # Supabase Activity CRUD and relationship selectors
     ├── leads/           # Supabase Lead CRUD, foreign keys, CSV tools, and fallback data
-    ├── opportunities/   # Opportunity types and Supabase data access
+    ├── opportunities/   # Opportunity CRUD, pipeline metrics, workflow, and Supabase access
     ├── dashboard/       # Dashboard calculations and presentation
     ├── activity-log/    # Log UI, types, and mock data
     └── app-shell.tsx    # Shared navigation and page layout
@@ -149,7 +150,6 @@ npm run build
 - Activity Log uses sample records and is not a live audit trail.
 - Authentication and role-based permissions are not implemented.
 - The current public demo uses anonymous RLS policies for all five operational tables; this is suitable only for demonstration and not production.
-- Opportunity has a database/data layer in this phase but no standalone management page yet.
 - Activity Log is not a live audit trail, and the UI does not subscribe to realtime database events.
 
 ## Security and Demo Notes
@@ -164,7 +164,6 @@ This anonymous-write policy is intentionally demo-only and is not appropriate fo
 - Role-based permissions
 - Enforce database-level email uniqueness where appropriate
 - Real-time cross-module synchronization
-- Opportunity management UI and sales-stage workflows
 - Live audit logging
 - Third-party integrations
 

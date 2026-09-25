@@ -86,6 +86,14 @@ Codex prepared the SQL schema and idempotent relational seed, added snake_case-t
 
 For this iteration, the human responsibility covered product positioning, user scenarios, object definitions, core relationships, scope, and acceptance criteria. Codex handled schema preparation, data access, CRUD wiring, mapping, tests, build checks, and debugging.
 
+### 17. Opportunity Lifecycle and Revenue Workflow
+
+Opportunity was implemented as a separate business object because a Lead represents a potential contact, while an Opportunity represents a confirmed commercial deal with its own stage, value, close date, and revenue outcome. The workflow now supports manual Opportunity creation and prefilled creation from a Lead, persistent CRUD, pipeline summaries, Campaign attribution, and Won/Lost revenue reporting.
+
+Lead status and Opportunity stage are intentionally not fully bidirectional. Creating an Opportunity advances an eligible New, Contacted, or Qualified Lead to Opportunity. Won and Lost stages advance the linked Lead to the same final status. Reopening a closed Opportunity does not move the Lead backward, which avoids accidentally reversing its lifecycle history.
+
+The project owner defined the Opportunity lifecycle, status synchronization rules, KPI formulas, workflow scope, and acceptance criteria. Codex implemented the Supabase CRUD queries, forms and modals, list and pipeline UI, field mapping, state synchronization, and focused tests.
+
 ## Human vs. AI Responsibilities
 
 ### Human Responsibilities

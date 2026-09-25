@@ -34,6 +34,6 @@ describe("V2 relational data mapping", () => {
       { id:"o1",leadId:"l1",campaignId:"c1",name:"One",company:"A",stage:"Proposal" as const,value:50,owner:"",expectedCloseDate:"",notes:"",createdAt:created,updatedAt:created },
       { id:"o2",leadId:"l2",campaignId:"c1",name:"Two",company:"B",stage:"Lost" as const,value:90,owner:"",expectedCloseDate:"",notes:"",createdAt:created,updatedAt:created },
     ];
-    assert.deepEqual(calculateCampaignPerformance(leads, opportunities), { totalLeads:2,qualifiedLeads:2,opportunities:2,wonLeads:1,pipelineValue:50 });
+    assert.deepEqual(calculateCampaignPerformance(leads, opportunities), { totalLeads:2,qualifiedLeads:2,opportunities:2,wonLeads:1,pipelineValue:50,wonRevenue:0 });
   });
 });

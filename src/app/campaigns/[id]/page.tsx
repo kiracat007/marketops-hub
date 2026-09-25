@@ -18,6 +18,7 @@ import { calculateCampaignPerformance } from "@/components/campaigns/performance
 import type { Campaign } from "@/components/campaigns/types";
 import type { Activity } from "@/components/activities/types";
 import type { Opportunity } from "@/components/opportunities/types";
+import { OpportunityStatusBadge } from "@/components/opportunities/status-badge";
 
 const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 const dateFormatter = new Intl.DateTimeFormat("zh-CN", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" });
@@ -76,7 +77,7 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
         <SummaryCard label="Total Leads" value={leadsLoading ? "加载中..." : String(performance.totalLeads)} accent />
         <SummaryCard label="Qualified Leads" value={leadsLoading ? "加载中..." : String(performance.qualifiedLeads)} />
         <SummaryCard label="Opportunities" value={leadsLoading ? "加载中..." : String(performance.opportunities)} />
-        <SummaryCard label="Won Leads" value={leadsLoading ? "加载中..." : String(performance.wonLeads)} />
+        <SummaryCard label="Won Revenue" value={leadsLoading ? "加载中..." : currency.format(performance.wonRevenue)} />
         <SummaryCard label="Pipeline Value" value={leadsLoading ? "加载中..." : currency.format(performance.pipelineValue)} accent />
       </section>
 
@@ -107,6 +108,11 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
       <section className="mt-8 overflow-hidden rounded-[14px] border border-zinc-200/80 bg-white shadow-sm">
         <div className="border-b border-slate-200 px-6 py-5"><h2 className="text-lg font-semibold text-slate-950">Related Activities</h2><p className="mt-1 text-sm text-slate-500">与这个 Campaign 关联的具体市场活动。</p></div>
         {relatedActivities.length ? <div className="overflow-x-auto"><table className="w-full min-w-[720px] text-left text-sm"><thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-6 py-3.5 font-semibold">Activity Name</th><th className="px-4 py-3.5 font-semibold">Type</th><th className="px-4 py-3.5 font-semibold">Date</th><th className="px-4 py-3.5 font-semibold">Location</th><th className="px-6 py-3.5 font-semibold">Status</th></tr></thead><tbody className="divide-y divide-slate-100">{relatedActivities.map((activity) => <tr key={activity.id}><td className="px-6 py-5 font-medium text-slate-950">{activity.name}</td><td className="px-4 py-5 text-slate-600">{activity.type}</td><td className="px-4 py-5 whitespace-nowrap font-medium text-[#4e4c48]">{formatDate(activity.startDate)}</td><td className="px-4 py-5 text-slate-600">{activity.location}</td><td className="px-6 py-5"><ActivityStatusBadge status={activity.status} /></td></tr>)}</tbody></table></div> : <EmptyRelated label="Activity" />}
+      </section>
+
+      <section className="mt-8 overflow-hidden rounded-[14px] border border-zinc-200/80 bg-white shadow-sm">
+        <div className="border-b border-slate-200 px-6 py-5"><h2 className="text-lg font-semibold text-slate-950">Related Opportunities</h2><p className="mt-1 text-sm text-slate-500">Supabase 中通过 campaign_id 关联的商机。</p></div>
+        {opportunities.length ? <div className="overflow-x-auto"><table className="w-full min-w-[620px] text-left text-sm"><thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-6 py-3.5 font-semibold">Name</th><th className="px-4 py-3.5 font-semibold">Stage</th><th className="px-4 py-3.5 font-semibold">Company</th><th className="px-6 py-3.5 text-right font-semibold">Value</th></tr></thead><tbody className="divide-y divide-slate-100">{opportunities.map((item) => <tr key={item.id}><td className="px-6 py-5 font-medium text-slate-950">{item.name}</td><td className="px-4 py-5"><OpportunityStatusBadge stage={item.stage} /></td><td className="px-4 py-5 text-slate-600">{item.company || "—"}</td><td className="px-6 py-5 text-right font-semibold tabular-nums text-[#272528]">{currency.format(item.value)}</td></tr>)}</tbody></table></div> : <EmptyRelated label="Opportunity" />}
       </section>
 
       <section className="mt-8 overflow-hidden rounded-[14px] border border-zinc-200/80 bg-white shadow-sm">
