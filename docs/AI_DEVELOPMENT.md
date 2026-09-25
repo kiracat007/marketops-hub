@@ -120,6 +120,14 @@ The public demo defaults to a deterministic Rule-based Preview, so it works with
 
 This stage reinforced that adding AI is not only a prompt-writing task. Privacy minimization, cost controls, prompt-injection boundaries, honest data-period wording, deterministic fallback behavior, and structured-output validation are part of product acceptance. The product owner retained responsibility for deciding whether live AI should be enabled and for evaluating all recommendations.
 
+### 21. V6 Analytics & Decision Center
+
+V4 answered “What happened?” through attribution and performance metrics. V5 added grounded summaries and recommendations. V6 focuses on “Where is the difference?” through deterministic comparison, segmentation, and diagnostics rather than another CRUD module.
+
+The product owner defined the analytics framework, KPI semantics, causal boundaries, time-series boundaries, data-quality rules, and acceptance criteria. Codex implemented shared pure aggregation functions, Campaign comparison, Source quality grouping, Funnel diagnostics, Follow-up and Owner workload analysis, eight-week record-creation trends, completeness indicators, lightweight visualizations, and focused tests.
+
+The implementation deliberately avoids causal language, predictive modeling, employee scoring, and weekly revenue trends. Lead, Opportunity, and Task trends use their reliable creation or completion timestamps. Won Revenue remains a current snapshot because the database does not contain a reliable `won_at` or `closed_at` field.
+
 ## Human vs. AI Responsibilities
 
 ### Human Responsibilities

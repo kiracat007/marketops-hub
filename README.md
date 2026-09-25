@@ -36,11 +36,12 @@ MarketOps Hub provides a single interface for managing marketing operations. V4 
 - **Campaign Performance:** Compare spend, Leads, qualified Leads, pipeline, revenue, CPL, CPQL, conversion, ROI, ROAS, Win Rate, and target attainment. Funnel conversion is deduplicated by Lead even when one Lead has multiple Opportunities.
 - **Campaign Report:** Generate a factual Campaign review, export its metrics as CSV, or print/save the report as PDF without an AI service.
 - **AI Marketing Copilot:** Generate a read-only AI Marketing Brief based on the current data snapshot and a Campaign Review from privacy-minimized aggregate data. The public demo defaults to an explicitly labelled rule-based preview; optional live analysis uses the server-side OpenAI Responses API.
+- **Analytics & Decision Center:** Compare Campaigns, analyze Source quality, diagnose Funnel drop-offs, review Follow-up effectiveness and Owner workload, inspect reliable activity trends, and identify data-completeness limitations.
 
 ## Core Workflow
 
 ```text
-Campaign → Activity → Lead → Follow-up → Opportunity → Revenue → Performance Review
+Campaign → Activity → Lead → Follow-up → Opportunity → Revenue → Attribution → Analytics → AI Decision Support
 ```
 
 The daily execution workflow is: Lead → Assign Owner → Contact → Schedule Follow-up → Create Task → Opportunity.
@@ -99,6 +100,7 @@ The repository includes the V2 target-schema reference, a non-destructive V1-to-
 src/
 ├── app/
 │   ├── dashboard/       # Marketing analytics overview
+│   ├── analytics/       # Comparison, segmentation, diagnostics, and trends
 │   ├── campaigns/       # Campaign list and dynamic detail page
 │   ├── partners/        # Partner page
 │   ├── activities/      # Activity page
@@ -114,6 +116,7 @@ src/
     ├── opportunities/   # Opportunity CRUD, pipeline metrics, workflow, and Supabase access
     ├── tasks/           # Task CRUD, due-date logic, relationships, and Supabase access
     ├── dashboard/       # Dashboard calculations and presentation
+    ├── analytics/       # Pure analytics functions and Decision Center UI
     ├── activity-log/    # Log UI, types, and mock data
     └── app-shell.tsx    # Shared navigation and page layout
 ```
@@ -175,6 +178,7 @@ npm run build
 - Activity Log is not a live audit trail, and the UI does not subscribe to realtime database events.
 - AI insights are not stored. They analyze the current aggregate snapshot only, do not represent verified week-over-week trends, and may be inaccurate.
 - True weekly trend and week-over-week analysis is a future improvement that requires reliable event timestamps and stored historical snapshots.
+- Analytics uses observed MarketOps data and does not perform causal inference, predictive modeling, revenue forecasting, or employee scoring. Weekly revenue is intentionally omitted because the schema has no reliable `won_at` or `closed_at` timestamp.
 - Live AI is disabled by default. Without all server-side settings, the interface uses a clearly labelled deterministic Rule-based Preview.
 
 ## Security and Demo Notes

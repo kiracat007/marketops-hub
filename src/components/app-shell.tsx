@@ -11,12 +11,14 @@ import {
   History,
   LayoutDashboard,
   ListTodo,
+  ChartNoAxesCombined,
   Megaphone,
   type LucideIcon,
 } from "lucide-react";
 
 const navigation: Array<{ label: string; href: string; icon: LucideIcon }> = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Analytics", href: "/analytics", icon: ChartNoAxesCombined },
   { label: "Campaigns", href: "/campaigns", icon: Megaphone },
   { label: "Partners", href: "/partners", icon: Handshake },
   { label: "Activities", href: "/activities", icon: CalendarDays },
