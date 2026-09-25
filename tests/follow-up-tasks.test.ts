@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { getFollowUpTiming, markAsContactedChanges, matchesLeadQuickFilter } from "../src/components/leads/follow-up";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { canMarkLeadAsContacted, getFollowUpTiming, markAsContactedChanges, matchesLeadQuickFilter } from "../src/components/leads/follow-up";
+import { LeadDetailModal } from "../src/components/leads/lead-detail-modal";
 import { mapLeadRow } from "../src/components/leads/supabase-data";
 import type { LeadRecord } from "../src/components/leads/types";
 import { compareTaskPriority, getTaskDueCategory, leadChangesForCompletedTask, prefillFollowUpTask } from "../src/components/tasks/logic";
@@ -25,4 +28,8 @@ describe("Lead follow-up and Task logic",()=>{
   it("completing a Follow-up Task produces last-contacted changes",()=>assert.deepEqual(leadChangesForCompletedTask(baseTask,now),{lastContactedAt:now.toISOString()}));
   it("filters Leads by follow-up timing",()=>{assert.equal(matchesLeadQuickFilter({...lead,nextFollowUpAt:new Date(2026,8,24,10).toISOString()},"overdue",now),true);assert.equal(matchesLeadQuickFilter({...lead,nextFollowUpAt:"",status:"New"},"none",now),true);});
   it("detects Task due categories",()=>{assert.equal(getTaskDueCategory(baseTask,now),"today");assert.equal(getTaskDueCategory({...baseTask,dueAt:new Date(2026,8,24,10).toISOString()},now),"overdue");assert.equal(getTaskDueCategory({...baseTask,status:"Completed"},now),"completed");});
+  it("shows Mark as Contacted for active Lead statuses",()=>{for(const status of ["New","Contacted","Qualified","Opportunity"] as const){assert.equal(canMarkLeadAsContacted(status),true);const markup=renderToStaticMarkup(createElement(LeadDetailModal,{lead:{...lead,status},contactPending:false,contactFeedback:null,onClose:()=>{},onEdit:()=>{},onCreateOpportunity:()=>{},onMarkContacted:()=>{},onCreateTask:()=>{}}));assert.match(markup,/标记为已联系/);}});
+  it("hides Mark as Contacted for Won and Lost Leads",()=>{for(const status of ["Won","Lost"] as const){assert.equal(canMarkLeadAsContacted(status),false);const markup=renderToStaticMarkup(createElement(LeadDetailModal,{lead:{...lead,status},contactPending:false,contactFeedback:null,onClose:()=>{},onEdit:()=>{},onCreateOpportunity:()=>{},onMarkContacted:()=>{},onCreateTask:()=>{}}));assert.doesNotMatch(markup,/标记为已联系/);assert.match(markup,/创建跟进任务/);}});
+  it("disables the Mark as Contacted button while saving",()=>{const markup=renderToStaticMarkup(createElement(LeadDetailModal,{lead,contactPending:true,contactFeedback:null,onClose:()=>{},onEdit:()=>{},onCreateOpportunity:()=>{},onMarkContacted:()=>{},onCreateTask:()=>{}}));assert.match(markup,/disabled=""/);assert.match(markup,/记录中\.\.\./);});
+  it("renders the successful contacted state",()=>{const updated={...lead,...markAsContactedChanges({status:"New",followUpStatus:"Not Started"},now)};const markup=renderToStaticMarkup(createElement(LeadDetailModal,{lead:updated,contactPending:false,contactFeedback:{type:"success",message:"已记录本次联系"},onClose:()=>{},onEdit:()=>{},onCreateOpportunity:()=>{},onMarkContacted:()=>{},onCreateTask:()=>{}}));assert.match(markup,/已记录本次联系/);assert.equal(updated.status,"Contacted");assert.equal(updated.followUpStatus,"In Progress");});
 });

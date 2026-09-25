@@ -3,6 +3,10 @@ import type { FollowUpStatus, LeadRecord, LeadStatus } from "./types";
 export type FollowUpTiming = "overdue" | "today" | "upcoming" | "none" | "completed";
 export type LeadQuickFilter = "all" | "needs" | "today" | "overdue" | "none";
 
+export function canMarkLeadAsContacted(status: LeadStatus) {
+  return status !== "Won" && status !== "Lost";
+}
+
 function localDay(value: Date) { return `${value.getFullYear()}-${String(value.getMonth()+1).padStart(2,"0")}-${String(value.getDate()).padStart(2,"0")}`; }
 
 export function getFollowUpTiming(nextFollowUpAt: string | undefined, status: FollowUpStatus | "" | undefined, now = new Date()): FollowUpTiming {
